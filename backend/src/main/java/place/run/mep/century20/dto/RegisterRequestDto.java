@@ -23,7 +23,7 @@ public class RegisterRequestDto {
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     private String email;
 
-    @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
+    @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
     private String phone;
 
     @NotBlank(message = "이름은 필수 입력값입니다.")
