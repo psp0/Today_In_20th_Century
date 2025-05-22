@@ -1,0 +1,25 @@
+# 기본 설정 파일 - 공통 설정만 포함
+spring:
+  profiles:
+    active: noredis  # 기본 프로필 설정
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # DB 스키마 자동 업데이트
+    show-sql: true      # SQL 쿼리 로깅 활성화
+    properties:
+      hibernate:
+        format_sql: true  # SQL 포맷팅
+
+server:
+  port: 8080           # 서버 포트 번호
+
+jwt:
+  secret: ${JWT_SECRET}  # JWT 시크릿 키 (환경변수 우선, 기본값 없음)
+  access-token-validity-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
+  refresh-token-validity-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간

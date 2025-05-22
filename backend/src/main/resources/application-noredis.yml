@@ -1,0 +1,12 @@
+# Redis 비사용 프로필 설정
+spring:
+  cache:
+    type: none  # 캐시 비활성화
+
+jwt:
+  cache-enabled: false  # JWT 캐시 비활성화
+
+# 주의사항:
+# - Redis 비사용 시 캐시가 비활성화됩니다.
+# - 대량의 요청 시 성능 영향을 고려해야 합니다.
+# - Redis를 사용하지 않는 환경에서는 이 프로필을 사용하세요.

@@ -1,0 +1,33 @@
+# Node.js (frontend)
+node_modules/
+dist/
+.env
+
+# Java/Spring Boot (backend)
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/build/
+backend/out/
+backend/.gradle/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/target/
+
+# Logs
+*.log
+backend/logs/
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# 기타
+*.iml

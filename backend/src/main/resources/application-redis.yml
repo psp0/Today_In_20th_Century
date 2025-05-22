@@ -1,0 +1,20 @@
+# Redis 사용 시 프로필 설정
+spring:
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    database: ${REDIS_DB:0}  # Redis DB 번호 (기본값: 0)
+    timeout: ${REDIS_TIMEOUT:5000ms}  # Redis 연결 타임아웃 (5초)
+    password: ${REDIS_PASSWORD:}  # Redis 비밀번호 (필수 설정)
+    ssl: true  # SSL 연결 활성화
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:1800000ms}  # 캐시 TTL (30분)
+      key-prefix: ${CACHE_KEY_PREFIX:century20-cache}  # 캐시 키 접두사
+
+jwt:
+  cache-enabled: true  # JWT 캐시 활성화
+  token:
+    cache-ttl: ${JWT_CACHE_TTL:900000ms}  # JWT 캐시 TTL (15분)
+    cache-key-prefix: ${JWT_CACHE_KEY_PREFIX:jwt-cache}  # JWT 캐시 키 접두사

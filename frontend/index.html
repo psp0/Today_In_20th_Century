@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>20세기의 오늘 뉴스</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="main-navbar">
+      <div class="navbar-logo">20C News</div>
+      <ul class="navbar-menu">
+        <li><a href="#">홈</a></li>
+        <li><a href="#" id="about-link">소개</a></li>
+        <li><a href="#" id="contact-link">문의</a></li>
+      </ul>
+      <div class="navbar-user-actions">
+        <button id="profile-btn" class="profile-btn" type="button" aria-label="내 프로필 열기">👤</button>
+        <button id="login-btn-navbar" class="login-btn" type="button">로그인</button>
+        <button id="logout-btn-navbar" class="logout-btn" type="button">로그아웃</button>
+      </div>
+    </nav>
+    <div class="main-layout">
+      <main class="news-detail">
+        <section class="news-container" aria-live="polite">
+          <div class="news-header">
+            <h2 id="news-title"></h2>
+            <div class="news-meta">
+              <span id="published-date"></span>
+              <span id="category-levels"></span>
+            </div>
+          </div>
+          <div class="news-content" id="news-content"></div>
+          <div class="news-footer">
+            <span id="press"></span>
+            <span id="reporter"></span>
+            <a id="address" href="#" target="_blank" rel="noopener noreferrer"></a>
+          </div>
+          <div class="news-empty-message" id="news-empty-message" style="display: none">
+            <p>표시할 뉴스가 없습니다.<br />날짜나 카테고리를 변경해보세요.</p>
+          </div>
+        </section>
+        <div class="action-buttons">
+          <button id="random-btn" type="button">오늘 뉴스 가져오기</button>
+        </div>
+      </main>
+      <aside class="sidebar">
+        <form class="date-search vertical" onsubmit="return false;">
+          <label for="news-date">날짜</label>
+          <input type="date" id="news-date" max="2000-12-31" min="1990-01-01" value="2000-01-01" />
+          <button id="search-date-btn" type="button">다른 뉴스 가져오기</button>
+        </form>
+        <div class="category-filter vertical" role="group" aria-label="카테고리 선택">
+          <button class="category-btn active" data-category="all" type="button">전체</button>
+          <button class="category-btn" data-category="물가" type="button">물가</button>
+          <button class="category-btn" data-category="가계대출" type="button">가계대출</button>
+          <button class="category-btn" data-category="기준금리" type="button">기준금리</button>
+          <button class="category-btn" data-category="파업" type="button">파업</button>
+          <button class="category-btn" data-category="출산율" type="button">출산율</button>
+        </div>
+        <div class="search-list">
+          <ul id="news-list">
+            <!-- JS로 검색 결과 뉴스 목록이 들어감 -->
+          </ul>
+        </div>
+      </aside>
+    </div>
+    <!-- 인증/회원가입 모달 -->
+    <div id="auth-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <div class="modal-content">
+        <span class="close" tabindex="0" aria-label="닫기">&times;</span>
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" data-tab="login" type="button">로그인</button>
+          <button class="auth-tab-btn" data-tab="signup" type="button">회원가입</button>
+        </div>
+        <div class="auth-forms">
+          <!-- 로그인 폼 -->
+          <form class="auth-form active" id="login-form" autocomplete="on">
+            <label for="login-id">아이디</label>
+            <input type="text" id="login-id" placeholder="아이디" required autocomplete="username" />
+            <label for="login-password">비밀번호</label>
+            <input
+              type="password"
+              id="login-password"
+              placeholder="비밀번호"
+              required
+              autocomplete="current-password"
+            />
+            <button id="login-btn" type="button">로그인</button>
+            <div class="auth-links">
+              <a href="#" id="forgot-password">비밀번호 찾기</a>
+            </div>
+          </form>
+          <!-- 회원가입 폼 -->
+          <form class="auth-form" id="signup-form" autocomplete="on">
+            <label for="signup-id">아이디</label>
+            <input type="text" id="signup-id" placeholder="아이디" required minlength="4" maxlength="20" pattern="^[a-zA-Z0-9_]+$" title="아이디는 4~20자 사이의 영문, 숫자, 언더스코어만 허용됩니다." />
+            <label for="signup-password">비밀번호</label>
+            <input type="password" id="signup-password" placeholder="비밀번호" required minlength="8" title="비밀번호는 8자 이상이어야 합니다." />
+            <label for="signup-confirm">비밀번호 확인</label>
+            <input type="password" id="signup-confirm" placeholder="비밀번호 확인" required />
+            <label for="signup-email">이메일</label>
+            <input type="email" id="signup-email" placeholder="이메일" required />
+            <label for="signup-name">이름</label>
+            <input type="text" id="signup-name" placeholder="이름" required />
+            <label for="signup-nickname">닉네임</label>
+            <input type="text" id="signup-nickname" placeholder="닉네임" required />
+            <label for="signup-birthdate">생년월일</label>
+            <input type="date" id="signup-birthdate" required />
+            <label for="signup-gender">성별</label>
+            <select id="signup-gender" required>
+              <option value="">선택</option>
+              <option value="남">남</option>
+              <option value="여">여</option>
+            </select>
+            <button id="signup-btn" type="button">회원가입</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프로필 모달 -->
+    <div id="profile-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+      <div class="modal-content">
+        <span class="close" tabindex="0" aria-label="닫기">&times;</span>
+        <h2 id="profile-modal-title">나의 정보</h2>
+        <form id="profile-form" class="profile-form" autocomplete="on">
+          <div class="profile-field">
+            <label for="profile-id">아이디</label>
+            <span id="profile-id" class="profile-readonly"></span>
+          </div>
+          <div class="profile-field">
+            <label for="profile-name">이름</label>
+            <input type="text" id="profile-name" required maxlength="50" pattern="^[\w\s]+$" title="이름은 50자 이내여야 합니다." />
+          </div>
+          <div class="profile-field">
+            <label for="profile-nickname">닉네임</label>
+            <input type="text" id="profile-nickname" required maxlength="20" pattern="^[\w\s]+$" title="닉네임은 20자 이내여야 합니다." />
+          </div>
+          <div class="profile-field">
+            <label for="profile-email">이메일</label>
+            <input type="email" id="profile-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="올바른 이메일 형식이어야 합니다." />
+          </div>
+          <div class="profile-field">
+            <label for="profile-phone">전화번호</label>
+            <input type="tel" id="profile-phone" required pattern="^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$" title="올바른 휴대폰 번호 형식이어야 합니다. (예: 010-1234-5678)" />
+          </div>
+          <div class="profile-field">
+            <label for="profile-birthdate">생년월일</label>
+            <input type="date" id="profile-birthdate" required />
+          </div>
+          <div class="profile-field">
+            <label for="profile-gender">성별</label>
+            <select id="profile-gender" required>
+              <option value="">선택</option>
+              <option value="남">남</option>
+              <option value="여">여</option>
+            </select>
+          </div>
+          <div class="profile-field">
+            <label for="profile-joined">회원가입일</label>
+            <span id="profile-joined" class="profile-readonly"></span>
+          </div>
+        </form>
+        <!-- 비밀번호 변경 폼 -->
+        <form id="change-password-form" class="password-form" style="display: none">
+          <div class="profile-field">
+            <label for="current-password">현재 비밀번호</label>
+            <input type="password" id="current-password" required title="현재 비밀번호를 입력해주세요." />
+          </div>
+          <div class="profile-field">
+            <label for="new-password">새 비밀번호</label>
+            <input type="password" id="new-password" required minlength="8" title="비밀번호는 8자 이상이어야 합니다." />
+          </div>
+          <div class="profile-field">
+            <label for="confirm-new-password">새 비밀번호 확인</label>
+            <input type="password" id="confirm-new-password" required minlength="8" title="비밀번호를 다시 입력해주세요." />
+          </div>
+        </form>
+        <div class="profile-buttons">
+          <button id="update-profile-btn" type="button">프로필 수정</button>
+          <button id="change-password-btn" type="button">비밀번호 변경</button>
+          <button id="delete-account-btn" type="button">회원 탈퇴</button>
+          <button id="profile-close" type="button">닫기</button>
+        </div>
+      </div>
+    </div>
+    <footer class="main-footer">
+      <div>
+        © 2025 20세기의 오늘 뉴스 | <a href="#" id="footer-about">소개</a> | <a href="#" id="footer-contact">문의</a>
+      </div>
+    </footer>
+
+    <!-- Article Modal -->
+    <div id="article-modal" class="modal">
+      <div class="modal-content">
+        <div class="article-content">
+          <!-- Article content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="src/index.js"></script>
+  </body>
+</html>
