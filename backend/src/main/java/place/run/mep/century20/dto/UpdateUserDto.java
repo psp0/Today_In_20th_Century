@@ -16,7 +16,7 @@ public class UpdateUserDto {
     @Size(max = 20, message = "닉네임은 20자 이내여야 합니다.")
     private String nickname;
 
-    @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
+    @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
     private String phone;
 
     @Size(max = 50, message = "이름은 50자 이내여야 합니다.")
