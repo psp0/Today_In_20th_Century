@@ -1,4 +1,4 @@
-package place.run.mep.century20;
+package place.run.mep.century20.repository;
 
 import place.run.mep.century20.entity.UserRefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -9,7 +9,7 @@
 
 ```bash
 # MySQL 설정
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/century20
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/centurynews_db
 SPRING_DATASOURCE_USERNAME=your_db_user
 SPRING_DATASOURCE_PASSWORD=your_db_password
 

@@ -3,15 +3,15 @@ package place.run.mep.century20.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import redis.clients.jedis.JedisPoolConfig;
 
 @Configuration
-@Profile("redis")
 public class RedisConfig {
+
     @Value("${REDIS_HOST:localhost}")
     private String redisHost;
     
@@ -22,10 +22,19 @@ public class RedisConfig {
     private String redisPassword;
 
     @Bean
-    public JedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
-        config.setPassword(redisPassword);
-        return new JedisConnectionFactory(config);
+    public RedisConnectionFactory redisConnectionFactory() {
+        JedisConnectionFactory factory = new JedisConnectionFactory();
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(100);
+        poolConfig.setMaxIdle(50);
+        poolConfig.setMinIdle(10);
+        poolConfig.setMaxWaitMillis(5000);
+        
+        factory.setPoolConfig(poolConfig);
+        factory.setHostName(redisHost);
+        factory.setPort(redisPort);
+        factory.setPassword(redisPassword);
+        return factory;
     }
 
     @Bean

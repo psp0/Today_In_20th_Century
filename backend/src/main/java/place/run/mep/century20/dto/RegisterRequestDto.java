@@ -2,7 +2,8 @@ package place.run.mep.century20.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
 import java.time.LocalDate;
 
 @Getter
@@ -34,10 +35,26 @@ public class RegisterRequestDto {
     @Size(max = 20, message = "닉네임은 20자 이내여야 합니다.")
     private String nickname;
 
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     @NotNull(message = "생년월일은 필수 입력값입니다.")
     private LocalDate birthDate;
 
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
     @NotBlank(message = "성별은 필수 입력값입니다.")
-    @Pattern(regexp = "^(MALE|FEMALE)$", message = "성별은 MALE 또는 FEMALE만 허용됩니다.")
+    @Pattern(regexp = "^(M|F)$", message = "성별은 M 또는 F만 허용됩니다.")
     private String gender;
 }

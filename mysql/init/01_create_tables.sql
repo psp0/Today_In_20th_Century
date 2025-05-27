@@ -21,8 +21,8 @@ CREATE TABLE `user_auth` (
     CONSTRAINT `fk_user_auth_user` FOREIGN KEY (`user_no`) REFERENCES `user` (`user_no`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 사용자 프로필 테이블
-CREATE TABLE `user_profile` (
+-- 사용자 정보 테이블
+CREATE TABLE `user_info` (
     `user_no` BIGINT(20) NOT NULL,
     `email` VARCHAR(100) NULL,
     `phone` VARCHAR(20) NULL,
@@ -32,7 +32,7 @@ CREATE TABLE `user_profile` (
     `gender` CHAR(1) NULL,
     `updated_at` DATETIME NULL,
     PRIMARY KEY (`user_no`),
-    CONSTRAINT `fk_user_profile_user` FOREIGN KEY (`user_no`) REFERENCES `user` (`user_no`) ON DELETE CASCADE
+    CONSTRAINT `fk_user_info_user` FOREIGN KEY (`user_no`) REFERENCES `user` (`user_no`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 사용자 리프레시 토큰 테이블
@@ -51,19 +51,16 @@ CREATE TABLE `user_refresh_token` (
 -- 뉴스 기사 테이블
 CREATE TABLE news_articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    main_category ENUM('물가', '가계대출', '기준금리', '출산율', '파업') NOT NULL,
+    main_category VARCHAR(10) NOT NULL,
     address VARCHAR(100),
     published_date DATE NOT NULL,
     press VARCHAR(20),
-    reporter VARCHAR(20),
-    title VARCHAR(100),
-    category_level1 VARCHAR(20),
-    category_level2 VARCHAR(20),
-    category_level3 VARCHAR(20),
-    content VARCHAR(500),
+    reporter VARCHAR(100),
+    title VARCHAR(255),
+    category_level1 VARCHAR(100),
+    category_level2 VARCHAR(100),
+    category_level3 VARCHAR(255),
+    content TEXT,
     INDEX `idx_main_category` (`main_category`),
     INDEX `idx_published_date` (`published_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
-

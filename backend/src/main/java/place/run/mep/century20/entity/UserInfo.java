@@ -1,23 +1,24 @@
-package place.run.mep.century20;
+package place.run.mep.century20.entity;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "user_profile")
-public class UserProfile {
+@Table(name = "user_info")
+public class UserInfo {
+
     @Id
     @Column(name = "user_no")
     private Long userNo;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_no")  
     @MapsId
-    @JoinColumn(name = "user_no")
     private User user;
 
     @Column(name = "email", length = 100)
@@ -29,7 +30,7 @@ public class UserProfile {
     @Column(name = "name", length = 20)
     private String name;
 
-    @Column(name = "nickname", nullable = false, length = 50)
+    @Column(name = "nickname", length = 50, nullable = false)
     private String nickname;
 
     @Column(name = "birth_date", nullable = false)
@@ -38,11 +39,11 @@ public class UserProfile {
     @Column(name = "gender", length = 1)
     private String gender;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

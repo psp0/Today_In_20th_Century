@@ -1,6 +1,6 @@
 package place.run.mep.century20.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class LogoutRequestDto {
     @NotBlank(message = "Refresh token is required")

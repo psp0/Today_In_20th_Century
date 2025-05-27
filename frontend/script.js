@@ -13,9 +13,19 @@ let isLoggedIn = false;
 let currentUser = null;
 
 // API 설정
-const API_BASE_URL = 'https://localhost:8080/api'
+const API_BASE_URL = 'http://localhost:80/api'
 
 // API 호출 함수 (에러 메시지 개선)
+// ID 중복 확인 API 추가
+async function checkIdDuplication(userId) {
+  try {
+    const response = await apiCall(`/users/check-id/${userId}`, "GET");
+    return response.exists; // true/false 반환
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function apiCall(endpoint, method = "GET", data = null) {
   const token = getToken();
   const headers = {
@@ -25,7 +35,7 @@ async function apiCall(endpoint, method = "GET", data = null) {
     headers["Authorization"] = `Bearer ${token}`;
   }
   try {
-    const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method,
       headers,
       body: data ? JSON.stringify(data) : null,
@@ -74,11 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 에러 처리 (best practice: error.message 우선, fallback)
   function handleApiError(error) {
-    if (error && error.message) {
-      alert(error.message);
+    if (error && error.message) { 
+      if (error.message === "news is undefined") {
+        alert("뉴스 데이터를 불러오는 데 실패했습니다. 다시 시도해주세요.");
+      } else {
+        alert(error.message);
+      }
       console.error("API Error:", error);
     } else {
-      alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      alert("현재 뉴스를 불러오는데 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
       console.error("Network Error:", error);
     }
   }
@@ -272,15 +286,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // 탭 전환
   authTabBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
+      // 모든 탭 버튼에서 active 클래스 제거
       authTabBtns.forEach((b) => b.classList.remove("active"));
+      // 클릭한 탭 버튼에 active 클래스 추가
       btn.classList.add("active");
 
+      // 모든 폼에서 active 클래스 제거
       authForms.forEach((form) => {
         form.classList.remove("active");
-        if (form.id === `${btn.dataset.tab}-form`) {
-          form.classList.add("active");
-        }
+        form.style.display = "none"; // 폼 숨기기
       });
+
+      // 클릭한 탭에 해당하는 폼만 활성화
+      const targetForm = document.getElementById(`${btn.dataset.tab}-form`);
+      if (targetForm) {
+        targetForm.classList.add("active");
+        targetForm.style.display = "block"; // 폼 보이기
+      }
     });
   });
 
@@ -306,14 +328,16 @@ document.addEventListener("DOMContentLoaded", () => {
         password,
       });
 
-      if (response.token) {
-        saveToken(response.token);
+      if (response.accessToken) {
+        saveToken(response.accessToken);
         isLoggedIn = true;
         currentUser = { userId };
         saveState();
-        updateAuthUI();
         authModal.style.display = "none";
+        updateAuthUI();
         alert("로그인되었습니다.");
+      } else if (response.error) {
+        alert(response.error);
       } else {
         alert(response.message || "로그인에 실패했습니다.");
       }
@@ -323,11 +347,60 @@ document.addEventListener("DOMContentLoaded", () => {
       hideLoading();
     }
   });
+
+  // 아이디 중복확인 버튼 이벤트 리스너
+  document.getElementById("check-id-btn").addEventListener("click", async () => {
+    const userId = document.getElementById("signup-id").value.trim();
+    if (!userId) {
+      alert("아이디를 입력해주세요.");
+      return;
+    }
+
+    try {
+      showLoading();
+      const isIdExists = await checkIdDuplication(userId);
+      const messageDiv = document.getElementById("id-check-message");
+      if (isIdExists === false) {
+        messageDiv.textContent = "사용 가능한 아이디입니다.";
+        messageDiv.style.color = "green";
+      } else if (isIdExists === true) { 
+        messageDiv.textContent = "이미 사용 중인 아이디입니다.";
+        messageDiv.style.color = "red";
+      } else {
+        messageDiv.textContent = "아이디 확인에 실패했습니다. 다시 시도해주세요.";
+        messageDiv.style.color = "orange";
+      }
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      hideLoading();
+    }
   });
 
   // 회원가입 처리
   document.getElementById("signup-btn").addEventListener("click", async () => {
+    console.log("Signup button clicked"); // Debugging log
     if (isLoading) return;
+
+    const requiredFields = [
+      "signup-id",
+      "signup-password",
+      "signup-confirm",
+      "signup-email",
+      "signup-nickname",
+      "signup-phone",
+      "signup-name",
+      "signup-birthdate",
+      "signup-gender",
+    ];
+
+    const missingFields = requiredFields.filter((id) => !document.getElementById(id));
+    if (missingFields.length > 0) {
+      console.error("Missing elements in DOM:", missingFields); // Debugging log
+      alert("필수 입력 필드가 누락되었습니다. 관리자에게 문의하세요.");
+      return;
+    }
+
     const userId = document.getElementById("signup-id").value;
     const password = document.getElementById("signup-password").value;
     const confirmPassword = document.getElementById("signup-confirm").value;
@@ -347,6 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("비밀번호가 일치하지 않습니다.");
       return;
     }
+
     showLoading();
     try {
       const response = await apiCall("/users/register", "POST", {
@@ -363,13 +437,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (response.message) {
         alert(response.message);
-        return;
+      } else {
+        alert("회원가입이 완료되었습니다.");
       }
 
-      alert("회원가입이 완료되었습니다.");
+      // 입력 필드 초기화
+      requiredFields.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.value = "";
+        }
+      });
+
       authModal.style.display = "none";
-      document.querySelector(".auth-tab-btn.login").click();
+      document.querySelector(".auth-tab-btn[data-tab='login']").click();
     } catch (error) {
+      console.error("Signup error", error); // Debugging log
       handleApiError(error);
     } finally {
       hideLoading();
@@ -386,15 +469,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 인증/프로필 모달 열기 시 포커스 이동
-  profileBtn.addEventListener("click", () => {
+  profileBtn.addEventListener("click", async () => {
     if (!isLoggedIn) {
       authModal.style.display = "block";
-      focusFirstInput("auth-modal");
       return;
     }
     profileModal.style.display = "block";
+    await loadUserProfile();
     focusFirstInput("profile-modal");
-    loadUserProfile();
   });
 
   // 프로필 정보 불러오기
@@ -407,14 +489,27 @@ document.addEventListener("DOMContentLoaded", () => {
       saveState();
 
       // 프로필 정보 표시
+      // 한글 인코딩 문제 해결을 위한 함수
+      function decodeText(text) {
+        if (!text) return "";
+        try {
+          return decodeURIComponent(escape(text));
+        } catch (e) {
+          return text;
+        }
+      }
+
+      // 읽기 전용 필드
       document.getElementById("profile-id").textContent = response.userId;
-      document.getElementById("profile-name").value = response.name;
-      document.getElementById("profile-nickname").value = response.nickname;
-      document.getElementById("profile-email").value = response.email;
-      document.getElementById("profile-phone").value = response.phone;
-      document.getElementById("profile-birthdate").value = response.birthDate;
-      document.getElementById("profile-gender").value = response.gender;
-      document.getElementById("profile-joined").textContent = response.createdAt;
+
+      // 입력 필드
+      document.getElementById("profile-name").textContent = decodeText(response.name) || "";
+      document.getElementById("profile-nickname").textContent = decodeText(response.nickname) || "";
+      document.getElementById("profile-email").textContent = response.email || "";
+      document.getElementById("profile-phone").textContent = response.phone || "";
+      document.getElementById("profile-birthdate").textContent = response.birthDate || "";
+      document.getElementById("profile-gender").textContent = response.gender || "";
+
     } catch (error) {
       handleApiError(error);
     }
@@ -565,13 +660,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logout-btn-navbar");
 
     if (loginBtn) {
-      loginBtn.style.display = isLoggedIn ? "none" : "";
+      loginBtn.style.display = isLoggedIn ? "none" : " inline-block";
     }
     if (profileBtn) {
-      profileBtn.style.display = isLoggedIn ? "" : "none";
+      profileBtn.style.display = isLoggedIn ?  "inline-block" : "none";
     }
     if (logoutBtn) {
-      logoutBtn.style.display = isLoggedIn ? "" : "none";
+      logoutBtn.style.display = isLoggedIn ? "inline-block" : "none";
     }
   }
 
@@ -591,13 +686,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 로그인 모달 표시 함수
   function showLoginModal() {
+    const loginModal = document.getElementById("auth-modal");
+    const loginForm = document.getElementById("login-form");
+    const signupForm = document.getElementById("signup-form");
+
+    // 로그인 폼 활성화, 회원가입 폼 비활성화
+    loginForm.classList.add("active");
+    loginForm.style.display = "block";
+    signupForm.classList.remove("active");
+    signupForm.style.display = "none";
+
     loginModal.style.display = "block";
     focusFirstInput("auth-modal");
   }
 
   // 모달 외부 클릭 시 닫기
   const loginModal = document.getElementById("auth-modal");
-  const profileModal = document.getElementById("profile-modal");
   window.addEventListener("click", (event) => {
     if (event.target === loginModal || event.target === profileModal) {
       event.target.style.display = "none";
@@ -647,3 +751,4 @@ document.addEventListener("DOMContentLoaded", () => {
       showLoginModal();
     }
   })();
+});

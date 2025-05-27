@@ -1,13 +1,19 @@
-package place.run.mep.century20;
+package place.run.mep.century20.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class TokenResponseDto {
     private String accessToken;
     private String refreshToken;
+
+    public TokenResponseDto() {
+    }
+
+    public TokenResponseDto(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
 }

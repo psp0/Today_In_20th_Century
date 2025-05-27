@@ -207,8 +207,8 @@ INSERT INTO `user_auth` (`user_no`, `password_hash`, `pw_changed`) VALUES
 (99, '$2b$10$ZKEg9IpBwWribS5G2KV/ge/HKFl.bwOTT6t.dvrIkUXTBtaywWCtW', '2025-02-16 20:44:00'),
 (100, '$2b$10$9oNhbqqZM5xArj1gK5qNOe3lu01KhDeMgvs6Hct/GiU3SD7M0H99a', '2025-03-12 09:23:00');
 
--- Insert into user_profile table
-INSERT INTO `user_profile` (`user_no`, `email`, `phone`, `name`, `nickname`, `birth_date`, `gender`, `updated_at`) VALUES
+-- Insert into user_info table
+INSERT INTO `user_info` (`user_no`, `email`, `phone`, `name`, `nickname`, `birth_date`, `gender`, `updated_at`) VALUES
 (1, 'kim.minho@student.kr', '010-1234-5678', '김민호', '민호스터디', '2006-03-15', 'M', '2024-05-01'),
 (2, 'park.jiyeon@student.kr', '010-2345-6789', '박지연', '지연이얌', '2006-07-22', 'F', '2024-04-28'),
 (3, 'lee.junho@student.kr', '010-3456-7890', '이준호', '준호쌤', '2007-01-30', 'M', '2024-05-03'),
@@ -316,92 +316,92 @@ INSERT INTO `user_refresh_token` (`user_no`, `refresh_token`, `issued_at`, `expi
 (2, 'refresh_token_example_string_for_user2_another_long_one', '2025-05-12 14:05:00', '2025-06-11 14:05:00', FALSE),
 (3, 'refresh_token_example_string_for_user3_yet_another_token', '2025-05-12 14:10:00', '2025-06-11 14:10:00', FALSE),
 (4, 'refresh_token_example_string_for_user4_unique_value_here', '2025-05-12 14:15:00', '2025-06-11 14:15:00', FALSE),
-(5, 'refresh_token_example_string_for_user5_secure_and_random', '2025-05-12 14:20:00', '2025-06-11 14:20:00', FALSE);
+(5, 'refresh_token_example_string_for_user5_secure_and_random', '2025-05-12 14:20:00', '2025-06-11 14:20:00', FALSE),
 (6, 'refresh_token_example_string_for_user6_another_unique', '2025-05-12 14:25:00', '2025-06-11 14:25:00', FALSE),
 (7, 'refresh_token_example_string_for_user7_different_value', '2025-05-12 14:30:00', '2025-06-11 14:30:00', FALSE),
 (8, 'refresh_token_example_string_for_user8_another_random', '2025-05-12 14:35:00', '2025-06-11 14:35:00', FALSE),
 (9, 'refresh_token_example_string_for_user9_unique_value', '2025-05-12 14:40:00', '2025-06-11 14:40:00', FALSE),
-(10, 'refresh_token_example_string_for_user10_another_secure', '2025-05-12 14:45:00', '2025-06-11 14:45:00', FALSE);
+(10, 'refresh_token_example_string_for_user10_another_secure', '2025-05-12 14:45:00', '2025-06-11 14:45:00', FALSE),
 (11, 'refresh_token_example_string_for_user11_unique_value', '2025-05-12 14:50:00', '2025-06-11 14:50:00', FALSE),
 (12, 'refresh_token_example_string_for_user12_another_secure', '2025-05-12 14:55:00', '2025-06-11 14:55:00', FALSE),
 (13, 'refresh_token_example_string_for_user13_unique_value', '2025-05-12 15:00:00', '2025-06-11 15:00:00', FALSE),
 (14, 'refresh_token_example_string_for_user14_another_secure', '2025-05-12 15:05:00', '2025-06-11 15:05:00', FALSE),
-(15, 'refresh_token_example_string_for_user15_unique_value', '2025-05-12 15:10:00', '2025-06-11 15:10:00', FALSE);
+(15, 'refresh_token_example_string_for_user15_unique_value', '2025-05-12 15:10:00', '2025-06-11 15:10:00', FALSE),
 (16, 'refresh_token_example_string_for_user16_another_secure', '2025-05-12 15:15:00', '2025-06-11 15:15:00', FALSE),
 (17, 'refresh_token_example_string_for_user17_unique_value', '2025-05-12 15:20:00', '2025-06-11 15:20:00', FALSE),
 (18, 'refresh_token_example_string_for_user18_another_secure', '2025-05-12 15:25:00', '2025-06-11 15:25:00', FALSE),
 (19, 'refresh_token_example_string_for_user19_unique_value', '2025-05-12 15:30:00', '2025-06-11 15:30:00', FALSE),
-(20, 'refresh_token_example_string_for_user20_another_secure', '2025-05-12 15:35:00', '2025-06-11 15:35:00', FALSE);
+(20, 'refresh_token_example_string_for_user20_another_secure', '2025-05-12 15:35:00', '2025-06-11 15:35:00', FALSE),
 (21, 'refresh_token_example_string_for_user21_unique_value', '2025-05-12 15:40:00', '2025-06-11 15:40:00', FALSE),
 (22, 'refresh_token_example_string_for_user22_another_secure', '2025-05-12 15:45:00', '2025-06-11 15:45:00', FALSE),
 (23, 'refresh_token_example_string_for_user23_unique_value', '2025-05-12 15:50:00', '2025-06-11 15:50:00', FALSE),
 (24, 'refresh_token_example_string_for_user24_another_secure', '2025-05-12 15:55:00', '2025-06-11 15:55:00', FALSE),
-(25, 'refresh_token_example_string_for_user25_unique_value', '2025-05-12 16:00:00', '2025-06-11 16:00:00', FALSE);
+(25, 'refresh_token_example_string_for_user25_unique_value', '2025-05-12 16:00:00', '2025-06-11 16:00:00', FALSE),
 (26, 'refresh_token_example_string_for_user26_another_secure', '2025-05-12 16:05:00', '2025-06-11 16:05:00', FALSE),
 (27, 'refresh_token_example_string_for_user27_unique_value', '2025-05-12 16:10:00', '2025-06-11 16:10:00', FALSE),
 (28, 'refresh_token_example_string_for_user28_another_secure', '2025-05-12 16:15:00', '2025-06-11 16:15:00', FALSE),
 (29, 'refresh_token_example_string_for_user29_unique_value', '2025-05-12 16:20:00', '2025-06-11 16:20:00', FALSE),
-(30, 'refresh_token_example_string_for_user30_another_secure', '2025-05-12 16:25:00', '2025-06-11 16:25:00', FALSE);
+(30, 'refresh_token_example_string_for_user30_another_secure', '2025-05-12 16:25:00', '2025-06-11 16:25:00', FALSE),
 (31, 'refresh_token_example_string_for_user31_unique_value', '2025-05-12 16:30:00', '2025-06-11 16:30:00', FALSE),
 (32, 'refresh_token_example_string_for_user32_another_secure', '2025-05-12 16:35:00', '2025-06-11 16:35:00', FALSE),
 (33, 'refresh_token_example_string_for_user33_unique_value', '2025-05-12 16:40:00', '2025-06-11 16:40:00', FALSE),
 (34, 'refresh_token_example_string_for_user34_another_secure', '2025-05-12 16:45:00', '2025-06-11 16:45:00', FALSE),
-(35, 'refresh_token_example_string_for_user35_unique_value', '2025-05-12 16:50:00', '2025-06-11 16:50:00', FALSE);
+(35, 'refresh_token_example_string_for_user35_unique_value', '2025-05-12 16:50:00', '2025-06-11 16:50:00', FALSE),
 (36, 'refresh_token_example_string_for_user36_another_secure', '2025-05-12 16:55:00', '2025-06-11 16:55:00', FALSE),
 (37, 'refresh_token_example_string_for_user37_unique_value', '2025-05-12 17:00:00', '2025-06-11 17:00:00', FALSE),
 (38, 'refresh_token_example_string_for_user38_another_secure', '2025-05-12 17:05:00', '2025-06-11 17:05:00', FALSE),
 (39, 'refresh_token_example_string_for_user39_unique_value', '2025-05-12 17:10:00', '2025-06-11 17:10:00', FALSE),
-(40, 'refresh_token_example_string_for_user40_another_secure', '2025-05-12 17:15:00', '2025-06-11 17:15:00', FALSE);
+(40, 'refresh_token_example_string_for_user40_another_secure', '2025-05-12 17:15:00', '2025-06-11 17:15:00', FALSE),
 (41, 'refresh_token_example_string_for_user41_unique_value', '2025-05-12 17:20:00', '2025-06-11 17:20:00', FALSE),
 (42, 'refresh_token_example_string_for_user42_another_secure', '2025-05-12 17:25:00', '2025-06-11 17:25:00', FALSE),
 (43, 'refresh_token_example_string_for_user43_unique_value', '2025-05-12 17:30:00', '2025-06-11 17:30:00', FALSE),
 (44, 'refresh_token_example_string_for_user44_another_secure', '2025-05-12 17:35:00', '2025-06-11 17:35:00', FALSE),
-(45, 'refresh_token_example_string_for_user45_unique_value', '2025-05-12 17:40:00', '2025-06-11 17:40:00', FALSE);
+(45, 'refresh_token_example_string_for_user45_unique_value', '2025-05-12 17:40:00', '2025-06-11 17:40:00', FALSE),
 (46, 'refresh_token_example_string_for_user46_another_secure', '2025-05-12 17:45:00', '2025-06-11 17:45:00', FALSE),
 (47, 'refresh_token_example_string_for_user47_unique_value', '2025-05-12 17:50:00', '2025-06-11 17:50:00', FALSE),
 (48, 'refresh_token_example_string_for_user48_another_secure', '2025-05-12 17:55:00', '2025-06-11 17:55:00', FALSE),
 (49, 'refresh_token_example_string_for_user49_unique_value', '2025-05-12 18:00:00', '2025-06-11 18:00:00', FALSE),
-(50, 'refresh_token_example_string_for_user50_another_secure', '2025-05-12 18:05:00', '2025-06-11 18:05:00', FALSE);
+(50, 'refresh_token_example_string_for_user50_another_secure', '2025-05-12 18:05:00', '2025-06-11 18:05:00', FALSE),
 (51, 'refresh_token_example_string_for_user51_unique_value', '2025-05-12 18:10:00', '2025-06-11 18:10:00', FALSE),
 (52, 'refresh_token_example_string_for_user52_another_secure', '2025-05-12 18:15:00', '2025-06-11 18:15:00', FALSE),
 (53, 'refresh_token_example_string_for_user53_unique_value', '2025-05-12 18:20:00', '2025-06-11 18:20:00', FALSE),
 (54, 'refresh_token_example_string_for_user54_another_secure', '2025-05-12 18:25:00', '2025-06-11 18:25:00', FALSE),
-(55, 'refresh_token_example_string_for_user55_unique_value', '2025-05-12 18:30:00', '2025-06-11 18:30:00', FALSE);
+(55, 'refresh_token_example_string_for_user55_unique_value', '2025-05-12 18:30:00', '2025-06-11 18:30:00', FALSE),
 (56, 'refresh_token_example_string_for_user56_another_secure', '2025-05-12 18:35:00', '2025-06-11 18:35:00', FALSE),
 (57, 'refresh_token_example_string_for_user57_unique_value', '2025-05-12 18:40:00', '2025-06-11 18:40:00', FALSE),
 (58, 'refresh_token_example_string_for_user58_another_secure', '2025-05-12 18:45:00', '2025-06-11 18:45:00', FALSE),
 (59, 'refresh_token_example_string_for_user59_unique_value', '2025-05-12 18:50:00', '2025-06-11 18:50:00', FALSE),
-(60, 'refresh_token_example_string_for_user60_another_secure', '2025-05-12 18:55:00', '2025-06-11 18:55:00', FALSE);
+(60, 'refresh_token_example_string_for_user60_another_secure', '2025-05-12 18:55:00', '2025-06-11 18:55:00', FALSE),
 (61, 'refresh_token_example_string_for_user61_unique_value', '2025-05-12 19:00:00', '2025-06-11 19:00:00', FALSE),
 (62, 'refresh_token_example_string_for_user62_another_secure', '2025-05-12 19:05:00', '2025-06-11 19:05:00', FALSE),
 (63, 'refresh_token_example_string_for_user63_unique_value', '2025-05-12 19:10:00', '2025-06-11 19:10:00', FALSE),
 (64, 'refresh_token_example_string_for_user64_another_secure', '2025-05-12 19:15:00', '2025-06-11 19:15:00', FALSE),
-(65, 'refresh_token_example_string_for_user65_unique_value', '2025-05-12 19:20:00', '2025-06-11 19:20:00', FALSE);
+(65, 'refresh_token_example_string_for_user65_unique_value', '2025-05-12 19:20:00', '2025-06-11 19:20:00', FALSE),
 (66, 'refresh_token_example_string_for_user66_another_secure', '2025-05-12 19:25:00', '2025-06-11 19:25:00', FALSE),
 (67, 'refresh_token_example_string_for_user67_unique_value', '2025-05-12 19:30:00', '2025-06-11 19:30:00', FALSE),
 (68, 'refresh_token_example_string_for_user68_another_secure', '2025-05-12 19:35:00', '2025-06-11 19:35:00', FALSE),
 (69, 'refresh_token_example_string_for_user69_unique_value', '2025-05-12 19:40:00', '2025-06-11 19:40:00', FALSE),
-(70, 'refresh_token_example_string_for_user70_another_secure', '2025-05-12 19:45:00', '2025-06-11 19:45:00', FALSE);
+(70, 'refresh_token_example_string_for_user70_another_secure', '2025-05-12 19:45:00', '2025-06-11 19:45:00', FALSE),
 (71, 'refresh_token_example_string_for_user71_unique_value', '2025-05-12 19:50:00', '2025-06-11 19:50:00', FALSE),
 (72, 'refresh_token_example_string_for_user72_another_secure', '2025-05-12 19:55:00', '2025-06-11 19:55:00', FALSE),
 (73, 'refresh_token_example_string_for_user73_unique_value', '2025-05-12 20:00:00', '2025-06-11 20:00:00', FALSE),
 (74, 'refresh_token_example_string_for_user74_another_secure', '2025-05-12 20:05:00', '2025-06-11 20:05:00', FALSE),
-(75, 'refresh_token_example_string_for_user75_unique_value', '2025-05-12 20:10:00', '2025-06-11 20:10:00', FALSE);
+(75, 'refresh_token_example_string_for_user75_unique_value', '2025-05-12 20:10:00', '2025-06-11 20:10:00', FALSE),
 (76, 'refresh_token_example_string_for_user76_another_secure', '2025-05-12 20:15:00', '2025-06-11 20:15:00', FALSE),
 (77, 'refresh_token_example_string_for_user77_unique_value', '2025-05-12 20:20:00', '2025-06-11 20:20:00', FALSE),
 (78, 'refresh_token_example_string_for_user78_another_secure', '2025-05-12 20:25:00', '2025-06-11 20:25:00', FALSE),
 (79, 'refresh_token_example_string_for_user79_unique_value', '2025-05-12 20:30:00', '2025-06-11 20:30:00', FALSE),
-(80, 'refresh_token_example_string_for_user80_another_secure', '2025-05-12 20:35:00', '2025-06-11 20:35:00', FALSE);
+(80, 'refresh_token_example_string_for_user80_another_secure', '2025-05-12 20:35:00', '2025-06-11 20:35:00', FALSE),
 (81, 'refresh_token_example_string_for_user81_unique_value', '2025-05-12 20:40:00', '2025-06-11 20:40:00', FALSE),
 (82, 'refresh_token_example_string_for_user82_another_secure', '2025-05-12 20:45:00', '2025-06-11 20:45:00', FALSE),
 (83, 'refresh_token_example_string_for_user83_unique_value', '2025-05-12 20:50:00', '2025-06-11 20:50:00', FALSE),
 (84, 'refresh_token_example_string_for_user84_another_secure', '2025-05-12 20:55:00', '2025-06-11 20:55:00', FALSE),
-(85, 'refresh_token_example_string_for_user85_unique_value', '2025-05-12 21:00:00', '2025-06-11 21:00:00', FALSE);
+(85, 'refresh_token_example_string_for_user85_unique_value', '2025-05-12 21:00:00', '2025-06-11 21:00:00', FALSE),
 (86, 'refresh_token_example_string_for_user86_another_secure', '2025-05-12 21:05:00', '2025-06-11 21:05:00', FALSE),
 (87, 'refresh_token_example_string_for_user87_unique_value', '2025-05-12 21:10:00', '2025-06-11 21:10:00', FALSE),
 (88, 'refresh_token_example_string_for_user88_another_secure', '2025-05-12 21:15:00', '2025-06-11 21:15:00', FALSE),
 (89, 'refresh_token_example_string_for_user89_unique_value', '2025-05-12 21:20:00', '2025-06-11 21:20:00', FALSE),
-(90, 'refresh_token_example_string_for_user90_another_secure', '2025-05-12 21:25:00', '2025-06-11 21:25:00', FALSE);
+(90, 'refresh_token_example_string_for_user90_another_secure', '2025-05-12 21:25:00', '2025-06-11 21:25:00', FALSE),
 (91, 'refresh_token_example_string_for_user91_unique_value', '2025-05-12 21:30:00', '2025-06-11 21:30:00', FALSE),
 (92, 'refresh_token_example_string_for_user92_another_secure', '2025-05-12 21:35:00', '2025-06-11 21:35:00', FALSE),
 (93, 'refresh_token_example_string_for_user93_unique_value', '2025-05-12 21:40:00', '2025-06-11 21:40:00', FALSE),

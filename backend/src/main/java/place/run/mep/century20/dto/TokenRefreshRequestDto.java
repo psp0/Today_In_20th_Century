@@ -1,4 +1,4 @@
-package place.run.mep.century20;
+package place.run.mep.century20.dto;
 
 import lombok.Getter;
 import lombok.Setter;

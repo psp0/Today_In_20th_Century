@@ -1,151 +1,139 @@
-package place.run.mep.century20;
+package place.run.mep.century20.service;
 
 import place.run.mep.century20.dto.RegisterRequestDto;
 import place.run.mep.century20.dto.UserInfoDto;
 import place.run.mep.century20.dto.UpdateUserDto;
+import place.run.mep.century20.dto.PasswordChangeDto;
 import place.run.mep.century20.entity.User;
 import place.run.mep.century20.entity.UserAuth;
-import place.run.mep.century20.entity.UserProfile;
-import place.run.mep.century20.repository.UserAuthRepository;
-import place.run.mep.century20.repository.UserProfileRepository;
+import place.run.mep.century20.entity.UserInfo;
 import place.run.mep.century20.repository.UserRepository;
+import place.run.mep.century20.repository.UserAuthRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import place.run.mep.century20.exception.UserNotFoundException;
 import place.run.mep.century20.exception.DuplicateResourceException;
 import place.run.mep.century20.exception.PasswordMismatchException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
     private final UserAuthRepository userAuthRepository;
-    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
     @Override
-    public void registerUser(RegisterRequestDto registerRequestDto) {
-        if (!registerRequestDto.getPassword().equals(registerRequestDto.getConfirmPassword())) {
-            throw new PasswordMismatchException("Passwords do not match.");
+    @Transactional
+    public void registerUser(RegisterRequestDto dto) {
+        if (userRepository.existsByUserId(dto.getUserId())) {
+            throw new DuplicateResourceException("이미 사용 중인 아이디입니다.");
         }
-        if (userRepository.existsByUserId(registerRequestDto.getUserId())) {
-            throw new DuplicateResourceException("User ID already exists.");
-        }
-        if (userProfileRepository.existsByEmail(registerRequestDto.getEmail())) {
-            throw new DuplicateResourceException("Email already exists.");
-        }
-        if (userProfileRepository.existsByNickname(registerRequestDto.getNickname())) {
-            throw new DuplicateResourceException("Nickname already exists.");
-        }
-
+        
         User user = new User();
-        user.setUserId(registerRequestDto.getUserId());
+        user.setUserId(dto.getUserId());
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        UserInfo userInfo = new UserInfo();
+        userInfo.setNickname(dto.getNickname());
+        userInfo.setPhone(dto.getPhone());
+        userInfo.setEmail(dto.getEmail());
+        userInfo.setBirthDate(dto.getBirthDate());
+        userInfo.setGender(dto.getGender());
+        userInfo.setUser(user);
+        user.setUserInfo(userInfo);
+        
         userRepository.save(user);
 
-        UserAuth userAuth = new UserAuth();
-        userAuth.setUser(user);
-        userAuth.setPasswordHash(passwordEncoder.encode(registerRequestDto.getPassword()));
+        UserAuth userAuth = new UserAuth(user);
+        userAuth.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         userAuthRepository.save(userAuth);
-
-        UserProfile userProfile = new UserProfile();
-        userProfile.setUser(user);
-        userProfile.setEmail(registerRequestDto.getEmail());
-        userProfile.setPhone(registerRequestDto.getPhone());
-        userProfile.setName(registerRequestDto.getName());
-        userProfile.setNickname(registerRequestDto.getNickname());
-        userProfile.setBirthDate(registerRequestDto.getBirthDate());
-        userProfile.setGender(registerRequestDto.getGender());
-        userProfileRepository.save(userProfile);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserInfoDto getUserInfo(String userId) {
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        UserProfile userProfile = userProfileRepository.findById(user.getUserNo())
-                .orElseThrow(() -> new UserNotFoundException("User profile not found"));
-
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        UserInfo userInfo = user.getUserInfo();
+        if (userInfo == null) {
+            throw new UserNotFoundException("사용자 정보를 찾을 수 없습니다.");
+        }
+        
         return UserInfoDto.builder()
                 .userId(user.getUserId())
-                .email(userProfile.getEmail())
-                .phone(userProfile.getPhone())
-                .name(userProfile.getName())
-                .nickname(userProfile.getNickname())
-                .birthDate(userProfile.getBirthDate())
-                .gender(userProfile.getGender())
+                .email(userInfo.getEmail())
+                .nickname(userInfo.getNickname())
+                .phone(userInfo.getPhone())
+                .name(userInfo.getName())
+                .birthDate(userInfo.getBirthDate())
+                .gender(userInfo.getGender())
                 .build();
     }
 
     @Override
     @Transactional
-    public UserInfoDto updateUser(String userId, UpdateUserDto updateUserDto) {
+    public UserInfoDto updateUser(String userId, UpdateUserDto dto) {
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        UserProfile userProfile = userProfileRepository.findById(user.getUserNo())
-                .orElseThrow(() -> new UserNotFoundException("User profile not found"));
-
-        // 중복 체크 (자기 자신 제외)
-        if (userProfileRepository.existsByEmailAndUserNoNot(updateUserDto.getEmail(), user.getUserNo())) {
-            throw new DuplicateResourceException("Email already exists");
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        UserInfo userInfo = user.getUserInfo();
+        if (userInfo == null) {
+            throw new UserNotFoundException("사용자 정보를 찾을 수 없습니다.");
         }
-        if (userProfileRepository.existsByNicknameAndUserNoNot(updateUserDto.getNickname(), user.getUserNo())) {
-            throw new DuplicateResourceException("Nickname already exists");
+        
+        if (dto.getNickname() != null) userInfo.setNickname(dto.getNickname());
+        if (dto.getPhone() != null) userInfo.setPhone(dto.getPhone());
+        if (dto.getName() != null) userInfo.setName(dto.getName());
+        if (dto.getEmail() != null) userInfo.setEmail(dto.getEmail());
+        if (dto.getBirthDate() != null) {
+            userInfo.setBirthDate(LocalDate.parse(dto.getBirthDate()));
         }
-
-        // 프로필 업데이트
-        userProfile.setEmail(updateUserDto.getEmail());
-        userProfile.setNickname(updateUserDto.getNickname());
-        userProfile.setPhone(updateUserDto.getPhone());
-        userProfile.setName(updateUserDto.getName());
-        userProfile.setBirthDate(updateUserDto.getBirthDate());
-        userProfile.setGender(updateUserDto.getGender());
-        userProfileRepository.save(userProfile);
-
+        if (dto.getGender() != null) userInfo.setGender(dto.getGender());
+        
+        userRepository.save(user);
+        
         return UserInfoDto.builder()
                 .userId(user.getUserId())
-                .email(userProfile.getEmail())
-                .phone(userProfile.getPhone())
-                .name(userProfile.getName())
-                .nickname(userProfile.getNickname())
-                .birthDate(userProfile.getBirthDate())
-                .gender(userProfile.getGender())
+                .email(userInfo.getEmail())
+                .nickname(userInfo.getNickname())
+                .phone(userInfo.getPhone())
+                .name(userInfo.getName())
+                .birthDate(userInfo.getBirthDate())
+                .gender(userInfo.getGender())
                 .build();
-    }
-
-    @Override
-    @Transactional
-    public void deleteUser(String userId) {
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        // 연관된 모든 데이터 삭제
-        userAuthRepository.deleteByUser(user);
-        userProfileRepository.deleteByUser(user);
-        userRepository.delete(user);
     }
 
     @Override
     @Transactional
     public void updatePassword(String userId, String currentPassword, String newPassword) {
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        UserAuth userAuth = userAuthRepository.findByUser(user)
-                .orElseThrow(() -> new UserNotFoundException("User auth not found"));
-
-        // 현재 비밀번호 확인
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        UserAuth userAuth = userAuthRepository.findByUser(user);
         if (!passwordEncoder.matches(currentPassword, userAuth.getPasswordHash())) {
-            throw new PasswordMismatchException("Current password is incorrect");
+            throw new PasswordMismatchException("현재 비밀번호가 일치하지 않습니다.");
         }
-
-        // 비밀번호 변경
         userAuth.setPasswordHash(passwordEncoder.encode(newPassword));
         userAuthRepository.save(userAuth);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        userAuthRepository.deleteByUser(user);
+        userRepository.delete(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByUserId(String userId) {
+        return userRepository.existsByUserId(userId);
     }
 }

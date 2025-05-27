@@ -1,4 +1,4 @@
-package place.run.mep.century20;
+package place.run.mep.century20.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,9 +18,8 @@ public class NewsArticle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MainCategory mainCategory;
+    @Column(nullable = false, length = 10)
+    private String mainCategory;
 
     @Column(nullable = false)
     private String address;
@@ -49,7 +48,5 @@ public class NewsArticle {
     @Column(nullable = false, length = 500)
     private String content;
 
-    public enum MainCategory {
-        물가, 가계대출, 기준금리, 출산율, 파업
-    }
+
 }

@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Profile("noredis")
 public class NoRedisUserCacheService {
-    @Value("${spring.cache.redis.time-to-live}")
-    private Long cacheTtl;
+
 
     public void cacheUserInfo(String userId, String userInfo) {
         // Redis 미사용 시 캐시하지 않음

@@ -5,6 +5,7 @@ spring:
 
 jwt:
   cache-enabled: false  # JWT 캐시 비활성화
+  access-token-validity-seconds: 3600  # 유효 기간 설정 (예: 3600초 = 1시간)
 
 # 주의사항:
 # - Redis 비사용 시 캐시가 비활성화됩니다.

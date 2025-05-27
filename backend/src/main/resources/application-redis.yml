@@ -11,7 +11,7 @@ spring:
     type: redis
     redis:
       time-to-live: ${CACHE_TTL:1800000ms}  # 캐시 TTL (30분)
-      key-prefix: ${CACHE_KEY_PREFIX:century20-cache}  # 캐시 키 접두사
+      key-prefix: ${CACHE_KEY_PREFIX:centurynews_db-cache}  # 캐시 키 접두사
 
 jwt:
   cache-enabled: true  # JWT 캐시 활성화

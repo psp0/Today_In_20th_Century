@@ -16,10 +16,22 @@ spring:
       hibernate:
         format_sql: true  # SQL 포맷팅
 
+  mvc:
+    charset: UTF-8
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+
 server:
   port: 8080           # 서버 포트 번호
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 jwt:
   secret: ${JWT_SECRET}  # JWT 시크릿 키 (환경변수 우선, 기본값 없음)
-  access-token-validity-seconds: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
-  refresh-token-validity-seconds: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>20세기의 오늘 뉴스</title>
+    <title>20세기의 오늘 뉴우스</title>
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="script.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet" />
@@ -97,6 +97,8 @@
           <form class="auth-form" id="signup-form" autocomplete="on">
             <label for="signup-id">아이디</label>
             <input type="text" id="signup-id" placeholder="아이디" required minlength="4" maxlength="20" pattern="^[a-zA-Z0-9_]+$" title="아이디는 4~20자 사이의 영문, 숫자, 언더스코어만 허용됩니다." />
+            <button id="check-id-btn" type="button">중복 확인</button>
+            <div id="id-check-message" class="id-check-message"></div>
             <label for="signup-password">비밀번호</label>
             <input type="password" id="signup-password" placeholder="비밀번호" required minlength="8" title="비밀번호는 8자 이상이어야 합니다." />
             <label for="signup-confirm">비밀번호 확인</label>
@@ -107,13 +109,15 @@
             <input type="text" id="signup-name" placeholder="이름" required />
             <label for="signup-nickname">닉네임</label>
             <input type="text" id="signup-nickname" placeholder="닉네임" required />
+            <label for="signup-phone">전화번호</label>
+            <input for ="signup-phone" type="tel" id="signup-phone" placeholder="전화번호" required pattern="^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$" title="올바른 휴대폰 번호 형식이어야 합니다. (예: 010-1234-5678)" />
             <label for="signup-birthdate">생년월일</label>
             <input type="date" id="signup-birthdate" required />
             <label for="signup-gender">성별</label>
             <select id="signup-gender" required>
               <option value="">선택</option>
-              <option value="남">남</option>
-              <option value="여">여</option>
+              <option value="M">남</option>
+              <option value="F">여</option>              
             </select>
             <button id="signup-btn" type="button">회원가입</button>
           </form>
@@ -133,36 +137,39 @@
           </div>
           <div class="profile-field">
             <label for="profile-name">이름</label>
-            <input type="text" id="profile-name" required maxlength="50" pattern="^[\w\s]+$" title="이름은 50자 이내여야 합니다." />
+            <span id="profile-name" class="profile-readonly"></span>
+            <!-- <input type="text" id="profile-name" required maxlength="50" pattern="^[\w\s]+$" title="이름은 50자 이내여야 합니다." /> -->
           </div>
           <div class="profile-field">
             <label for="profile-nickname">닉네임</label>
-            <input type="text" id="profile-nickname" required maxlength="20" pattern="^[\w\s]+$" title="닉네임은 20자 이내여야 합니다." />
+            <span id="profile-nickname" class="profile-readonly"></span>
+            <!-- <input type="text" id="profile-nickname" required maxlength="20" pattern="^[\w\s]+$" title="닉네임은 20자 이내여야 합니다." /> -->
           </div>
           <div class="profile-field">
             <label for="profile-email">이메일</label>
-            <input type="email" id="profile-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="올바른 이메일 형식이어야 합니다." />
+            <span id="profile-email" class="profile-readonly"></span>
+            <!-- <input type="email" id="profile-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" title="올바른 이메일 형식이어야 합니다." /> -->
           </div>
           <div class="profile-field">
             <label for="profile-phone">전화번호</label>
-            <input type="tel" id="profile-phone" required pattern="^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$" title="올바른 휴대폰 번호 형식이어야 합니다. (예: 010-1234-5678)" />
+            <span id="profile-phone" class="profile-readonly"></span>
+            <!-- <input type="tel" id="profile-phone" required pattern="^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$" title="올바른 휴대폰 번호 형식이어야 합니다. (예: 010-1234-5678)" /> -->
           </div>
           <div class="profile-field">
             <label for="profile-birthdate">생년월일</label>
-            <input type="date" id="profile-birthdate" required />
+            <span id="profile-birthdate" class="profile-readonly"></span>
+            <!-- <input type="date" id="profile-birthdate" required /> -->
           </div>
           <div class="profile-field">
             <label for="profile-gender">성별</label>
-            <select id="profile-gender" required>
+            <span id="profile-gender" class="profile-readonly"></span>
+            <!-- <select id="profile-gender" required>
               <option value="">선택</option>
-              <option value="남">남</option>
-              <option value="여">여</option>
-            </select>
+              <option value="M">남</option>
+              <option value="F">여</option>
+            </select> -->
           </div>
-          <div class="profile-field">
-            <label for="profile-joined">회원가입일</label>
-            <span id="profile-joined" class="profile-readonly"></span>
-          </div>
+ 
         </form>
         <!-- 비밀번호 변경 폼 -->
         <form id="change-password-form" class="password-form" style="display: none">
@@ -180,8 +187,8 @@
           </div>
         </form>
         <div class="profile-buttons">
-          <button id="update-profile-btn" type="button">프로필 수정</button>
-          <button id="change-password-btn" type="button">비밀번호 변경</button>
+          <!-- <button id="update-profile-btn" type="button">프로필 수정</button> -->
+          <!-- <button id="change-password-btn" type="button">비밀번호 변경</button> -->
           <button id="delete-account-btn" type="button">회원 탈퇴</button>
           <button id="profile-close" type="button">닫기</button>
         </div>

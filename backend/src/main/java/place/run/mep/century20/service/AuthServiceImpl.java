@@ -1,4 +1,4 @@
-package place.run.mep.century20;
+package place.run.mep.century20.service;
 
 import place.run.mep.century20.config.JwtTokenProvider;
 import place.run.mep.century20.dto.LoginRequestDto;
@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,40 +34,41 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public TokenResponseDto login(LoginRequestDto loginRequestDto) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getUserId(), loginRequestDto.getPassword())        
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getUserId(), loginRequestDto.getPassword())
         );
-        
-        String accessToken = jwtTokenProvider.createAccessToken(authentication); 
-        String refreshTokenString = jwtTokenProvider.createRefreshToken(authentication); 
+
+        // accessToken, refreshToken 생성 방식 수정
+        String accessToken = jwtTokenProvider.createAccessToken(loginRequestDto.getUserId(), java.util.Collections.emptyMap());
+        String refreshTokenString = jwtTokenProvider.createRefreshToken(loginRequestDto.getUserId());
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByUserId(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with userId: " + userDetails.getUsername()));
 
         UserRefreshToken userRefreshToken = userRefreshTokenRepository.findByUser_UserId(user.getUserId())
-                .orElse(new UserRefreshToken()); 
-        
+                .orElse(new UserRefreshToken());
+
         userRefreshToken.setUser(user);
         userRefreshToken.setRefreshToken(refreshTokenString);
-        userRefreshToken.setIssuedAt(LocalDateTime.now()); 
-        userRefreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(jwtTokenProvider.getRefreshTokenValidityInSeconds())); 
+        userRefreshToken.setIssuedAt(LocalDateTime.now());
+        userRefreshToken.setExpiresAt(LocalDateTime.now().plusSeconds(jwtTokenProvider.getRefreshTokenValidityInSeconds()));
         userRefreshToken.setRevoked(false);
         userRefreshTokenRepository.save(userRefreshToken);
 
-        return new TokenResponseDto(accessToken, refreshTokenString); 
+        return new TokenResponseDto(accessToken, refreshTokenString);
     }
 
     @Override
     @Transactional
     public TokenResponseDto refreshToken(TokenRefreshRequestDto tokenRefreshRequestDto) {
         String requestRefreshToken = tokenRefreshRequestDto.getRefreshToken();
-        
+
         if (!jwtTokenProvider.validateToken(requestRefreshToken)) {
             throw new RuntimeException("Invalid Refresh Token");
         }
 
         String userId = jwtTokenProvider.getUsernameFromToken(requestRefreshToken);
-        UserRefreshToken storedRefreshToken = userRefreshTokenRepository.findByUser_UserId(userId) 
+        UserRefreshToken storedRefreshToken = userRefreshTokenRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Refresh token not found in DB"));
 
         if (storedRefreshToken.isRevoked() || storedRefreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -77,10 +79,8 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Refresh token mismatch");
         }
 
-        UserDetails userDetails = userDetailsServiceImpl.loadUserByUsername(userId);
-        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        String newAccessToken = jwtTokenProvider.createAccessToken(newAuthentication); 
-
+        // accessToken 재발급
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId, java.util.Collections.emptyMap());
         return new TokenResponseDto(newAccessToken, requestRefreshToken);
     }
 
@@ -88,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String refreshToken) {
         UserRefreshToken refreshTokenRecord = userRefreshTokenRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Refresh token not found"));
-        
+
         refreshTokenRecord.setRevoked(true);
         refreshTokenRecord.setExpiresAt(LocalDateTime.now());
         userRefreshTokenRepository.save(refreshTokenRecord);

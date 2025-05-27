@@ -41,6 +41,29 @@ src/
 - 주요 변수: DB 접속 정보, JWT 시크릿, Redis 설정, `SPRING_PROFILES_ACTIVE`
 - 상세 배포/보안: [`DEPLOY_TOMCAT.md`](DEPLOY_TOMCAT.md) 참고
 
+   ## Gradle 설치 방법 (Ubuntu/Linux)
+
+   Gradle이 설치되어 있지 않다면 아래 절차를 따라 설치하세요.
+
+   1. 패키지 목록 업데이트 및 zip 설치:
+      ```bash
+      sudo apt update
+      sudo apt install zip
+      ```
+   2. SDKMAN 설치:
+      ```bash
+      curl -s "https://get.sdkman.io" | bash
+      source "$HOME/.sdkman/bin/sdkman-init.sh"
+      ```
+   3. Gradle 설치:
+      ```bash
+      sdk install gradle
+      ```
+   4. 프로젝트 디렉터리에서 Gradle Wrapper 생성:
+      ```bash
+      gradle wrapper
+      ```
+
 ## 실행 방법
 1. 의존성 설치
    ```bash
@@ -55,7 +78,7 @@ src/
    - Redis 사용: `SPRING_PROFILES_ACTIVE=redis`
    - 미사용: `SPRING_PROFILES_ACTIVE=noredis`
 
-## 테스트
+   ## 테스트
 ```bash
 ./gradlew test
 ```

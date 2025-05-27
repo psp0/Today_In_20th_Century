@@ -622,11 +622,38 @@ h1 {
   background: #f8f9fa;
   border-radius: 18px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 32px 24px 24px 24px;
+  padding: 32px 24px;
   display: flex;
   flex-direction: column;
   gap: 32px;
   min-width: 220px;
+}
+
+.auth-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.id-check-message {
+  font-size: 14px;
+  padding: 5px;
+  margin: 5px 0;
+  border-radius: 4px;
+}
+
+.id-check-message.success {
+  color: #28a745;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.id-check-message.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
 }
 
 .news-detail {
@@ -1053,11 +1080,11 @@ button:disabled:hover {
 /* Initial navbar button visibility */
 .navbar-user-actions .profile-btn,
 .navbar-user-actions .logout-btn {
-  display: none !important;
+  display: none;
 }
 
 .navbar-user-actions .login-btn {
-  display: inline-block !important;
+  display: inline-block;
 }
 
 /* Error Animation */
