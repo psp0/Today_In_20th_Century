@@ -3,10 +3,9 @@
 이 프로젝트는 20세기 주요 뉴스를 제공하는 Spring Boot 기반 백엔드 서버입니다. RESTful API를 통해 뉴스 데이터, 사용자 인증, 캐싱 등 핵심 비즈니스 로직을 제공합니다.
 
 ## 주요 기능
-- 뉴스 및 사용자 데이터 관리 API
-- JWT 기반 인증/인가 및 보안
-- Redis 캐시(토큰, 뉴스, 사용자 정보)
-- Swagger API 문서 제공(`/swagger-ui/index.html`)
+- 뉴스 및 사용자 데이터 관리
+- JWT 기반 인증/인가
+- Swagger API 문서 제공 (`/swagger-ui/index.html`)
 
 ## 폴더 구조
 ```
@@ -24,68 +23,21 @@ src/
 │   │       └── Century20Application.java  # 진입점
 │   └── resources/
 │       ├── application.yml
-│       ├── application-redis.yml
 │       └── application-noredis.yml
 └── test/                       # 테스트 코드
 ```
 
 ## 기술 스택
-- Spring Boot 2.7.17
-- MySQL 8.0.32
-- Redis (선택적 캐시)
-- Spring Security, JWT
-- Lombok, Springfox (Swagger)
+- Spring Boot 3.x
+- Spring Security with JWT
+- Lombok, Springfox Swagger
 
-## 환경 변수 및 설정
-- 환경 변수 예시: `.env.example` 참고
+## 환경 설정
+- 환경 변수: `.env.web.example` 참고
 - 주요 변수: DB 접속 정보, JWT 시크릿, Redis 설정, `SPRING_PROFILES_ACTIVE`
-- 상세 배포/보안: [`DEPLOY_TOMCAT.md`](DEPLOY_TOMCAT.md) 참고
-
-   ## Gradle 설치 방법 (Ubuntu/Linux)
-
-   Gradle이 설치되어 있지 않다면 아래 절차를 따라 설치하세요.
-
-   1. 패키지 목록 업데이트 및 zip 설치:
-      ```bash
-      sudo apt update
-      sudo apt install zip
-      ```
-   2. SDKMAN 설치:
-      ```bash
-      curl -s "https://get.sdkman.io" | bash
-      source "$HOME/.sdkman/bin/sdkman-init.sh"
-      ```
-   3. Gradle 설치:
-      ```bash
-      sdk install gradle
-      ```
-   4. 프로젝트 디렉터리에서 Gradle Wrapper 생성:
-      ```bash
-      gradle wrapper
-      ```
-
-## 실행 방법
-1. 의존성 설치
-   ```bash
-   ./gradlew build
-   ```
-2. 환경 변수 설정(상세 내용은 위의 "환경 변수 및 설정" 참고)
-3. 데이터베이스 준비(`mysql/`의 스키마 사용)
-4. 서버 실행
-   ```bash
-   ./gradlew bootRun
-   ```
-   - Redis 사용: `SPRING_PROFILES_ACTIVE=redis`
-   - 미사용: `SPRING_PROFILES_ACTIVE=noredis`
-
-   ## 테스트
-```bash
-./gradlew test
-```
-
-## 배포
-- 빌드된 WAR 파일을 Tomcat 서버에 배포
-- 자세한 절차 및 체크리스트는 [`DEPLOY_TOMCAT.md`](DEPLOY_TOMCAT.md) 참고
-
+    
 ## 보안
-- JWT 인증, CORS, Redis 세션, Spring Security 적용
+- JWT 기반 인증/인가
+- CORS 설정
+- Spring Security 적용
+- 비밀번호 암호화

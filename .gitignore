@@ -1,12 +1,9 @@
-# Node.js (frontend)
-node_modules/
-dist/
+# 환경 설정 파일
 .env
+.env.*
+!*.example.*
 
-# Java/Spring Boot (backend)
-backend/.env
-backend/.env.*
-!backend/.env.example
+# Docker
 backend/build/
 backend/out/
 backend/.gradle/
@@ -16,9 +13,20 @@ backend/.project
 backend/.settings/
 backend/target/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# 모니터링
+prometheus/data/
+
+# MySQL
+mysql/data/
+
 # Logs
 *.log
-backend/logs/
+logs/
 
 # OS/Editor
 .DS_Store
@@ -31,3 +39,4 @@ Thumbs.db
 
 # 기타
 *.iml
+.fuse_hidden*

@@ -21,7 +21,7 @@ sudo chmod 644 /var/lib/mysql-files/news_data.csv
 
 ## MYSQL 서비스 문제 해결
 
-톰캣/아파치 컨테이너에서 MYSQL(MariaDB) 서비스가 실패하는 경우의 해결 방법입니다.
+TurnKey-linux-mysql VM에서 MYSQL(MariaDB) 서비스가 실패하는 경우의 해결 방법입니다.
 
 1. 설정 파일 디렉토리 생성:
 ```bash

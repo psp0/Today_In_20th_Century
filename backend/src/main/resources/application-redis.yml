@@ -18,3 +18,5 @@ jwt:
   token:
     cache-ttl: ${JWT_CACHE_TTL:900000ms}  # JWT 캐시 TTL (15분)
     cache-key-prefix: ${JWT_CACHE_KEY_PREFIX:jwt-cache}  # JWT 캐시 키 접두사
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간

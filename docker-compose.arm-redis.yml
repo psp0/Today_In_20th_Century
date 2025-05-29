@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:6.2
+    platform: linux/arm64
+    command: >
+      redis-server 
+      --save ""  # RDB 비활성화 (빈 문자열로 설정)
+      --appendonly ${REDIS_APPENDONLY:-no} 
+      --cluster-enabled ${REDIS_CLUSTER_ENABLED:-yes} 
+      --cluster-config-file nodes.conf 
+      --cluster-node-timeout ${REDIS_NODE_TIMEOUT:-5000} 
+      --cluster-announce-ip ${REDIS_NODE_IP} 
+      --cluster-announce-port ${REDIS_PORT:-6379} 
+      --cluster-announce-bus-port ${REDIS_BUS_PORT:-16379} 
+      --requirepass ${REDIS_PASSWORD}
+      ${REDIS_REPLICA_OF:-}
+    ports:
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+      - "${REDIS_BUS_PORT:-16379}:${REDIS_BUS_PORT:-16379}"
+    volumes:
+      - redis_data:/data
+    networks:
+      - redis_cluster
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.41.0
+    platform: linux/arm64
+    command: --redis.addr=redis:6379 --redis.password=${REDIS_PASSWORD}
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - redis_cluster
+
+networks:
+  redis_cluster:
+    driver: bridge
+
+volumes:
+  redis_data:
+

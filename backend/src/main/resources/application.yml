@@ -1,7 +1,7 @@
 # 기본 설정 파일 - 공통 설정만 포함
 spring:
   profiles:
-    active: noredis  # 기본 프로필 설정
+    active: ${SPRING_PROFILES_ACTIVE:noredis}
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -35,3 +35,18 @@ jwt:
   secret: ${JWT_SECRET}  # JWT 시크릿 키 (환경변수 우선, 기본값 없음)
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: century-backend 

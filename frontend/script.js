@@ -515,6 +515,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 회원 탈퇴
+  document.getElementById("delete-account-btn").addEventListener("click", async () => {
+    if (isLoading) return;
+
+    if (!confirm("정말로 회원탈퇴를 진행하시겠습니까?\n탈퇴 후에는 모든 데이터가 삭제되며, 복구가 불가능합니다.")) {
+      return;
+    }
+
+    try {
+      showLoading();
+      await apiCall('/users/withdraw', 'DELETE');
+      clearToken();
+      isLoggedIn = false;
+      currentUser = null;
+      saveState();
+      updateAuthUI();
+      alert("회원탈퇴가 완료되었습니다.");
+      const profileModal = document.getElementById("profile-modal");
+      profileModal.style.display = "none";
+    } catch (error) {
+      console.error("회원탈퇴 실패:", error);
+      alert("회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      hideLoading();
+    }
+  });
+
   // 프로필 수정
   document.getElementById("update-profile-btn").addEventListener("click", async () => {
     if (isLoading) return;

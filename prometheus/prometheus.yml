@@ -1,0 +1,54 @@
+global:
+  scrape_interval: ${SCRAPE_INTERVAL:-15s}
+  evaluation_interval: ${EVALUATION_INTERVAL:-15s}
+  scrape_timeout: ${SCRAPE_TIMEOUT:-10s}
+
+scrape_configs:
+  # Prometheus 자체 메트릭
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['${PROMETHEUS_HOST:-localhost}:${PROMETHEUS_PORT:-9090}']
+
+  # MySQL Exporter
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['${MYSQL_EXPORTER_HOST:-localhost}:${MYSQL_EXPORTER_PORT:-9104}']
+    scrape_timeout: ${SCRAPE_TIMEOUT:-10s}
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9104
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['${REDIS_EXPORTER_HOST:-localhost}:${REDIS_EXPORTER_PORT:-9121}']
+    scrape_timeout: ${SCRAPE_TIMEOUT:-10s}
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9121
+
+  # Spring Boot Exporter
+  - job_name: 'spring-boot'
+    static_configs:
+      - targets: ['${SPRING_BOOT_EXPORTER_HOST:-localhost}:${SPRING_BOOT_EXPORTER_PORT:-8080}']
+    scrape_timeout: ${SCRAPE_TIMEOUT:-10s}
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: /actuator/prometheus
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:8080
