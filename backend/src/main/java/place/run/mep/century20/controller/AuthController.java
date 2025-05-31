@@ -16,17 +16,46 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 import org.springframework.security.authentication.BadCredentialsException;
+import jakarta.servlet.http.HttpServletRequest;
+import place.run.mep.century20.config.JwtTokenProvider;
+import place.run.mep.century20.entity.User;
+import place.run.mep.century20.service.UserService;
+import place.run.mep.century20.service.AuthService;
+import place.run.mep.century20.config.TokenValidationResult;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class AuthController {
 
+    @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        try {
+            String token = jwtTokenProvider.resolveToken(request);
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(java.util.Collections.singletonMap("error", "Token is missing"));
+            }
+            
+            TokenValidationResult result = jwtTokenProvider.validateToken(token);
+            if (!result.isValid()) {
+                return ResponseEntity.status(result.status())
+                    .body(java.util.Collections.singletonMap("error", result.message()));
+            }
+            return ResponseEntity.ok(java.util.Collections.singletonMap("valid", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(java.util.Collections.singletonMap("error", "Internal server error"));
+        }
+    }
+
     private final UserService userService;
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDto registerRequestDto, BindingResult bindingResult) {

@@ -4,6 +4,8 @@ import place.run.mep.century20.dto.RegisterRequestDto;
 import place.run.mep.century20.dto.UserInfoDto;
 import place.run.mep.century20.dto.UpdateUserDto;
 import place.run.mep.century20.dto.PasswordChangeDto;
+import place.run.mep.century20.entity.User;
+import java.util.Optional;
 
 public interface UserService {
     void registerUser(RegisterRequestDto registerRequestDto);
@@ -12,4 +14,5 @@ public interface UserService {
     void updatePassword(String userId, String currentPassword, String newPassword);
     void deleteUser(String userId);
     boolean existsByUserId(String userId);
+    Optional<User> findByUsername(String username);
 }

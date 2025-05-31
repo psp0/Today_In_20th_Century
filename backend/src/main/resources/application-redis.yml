@@ -6,7 +6,7 @@ spring:
     database: ${REDIS_DB:0}  # Redis DB 번호 (기본값: 0)
     timeout: ${REDIS_TIMEOUT:5000ms}  # Redis 연결 타임아웃 (5초)
     password: ${REDIS_PASSWORD:}  # Redis 비밀번호 (필수 설정)
-    ssl: true  # SSL 연결 활성화
+    ssl: false  # SSL 연결 활성화
   cache:
     type: redis
     redis:
@@ -16,7 +16,8 @@ spring:
 jwt:
   cache-enabled: true  # JWT 캐시 활성화
   token:
-    cache-ttl: ${JWT_CACHE_TTL:900000ms}  # JWT 캐시 TTL (15분)
+    # cache-ttl: ${JWT_CACHE_TTL:900000ms}  # JWT 캐시 TTL (15분)
     cache-key-prefix: ${JWT_CACHE_KEY_PREFIX:jwt-cache}  # JWT 캐시 키 접두사
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600}  # 액세스 토큰 유효기간
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400}  # 리프레시 토큰 유효기간
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600000}  # 액세스 토큰 유효기간 (밀리초 단위)
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400000}  # 리프레시 토큰 유효기간 (밀리초 단위)
+  

@@ -18,6 +18,7 @@ import place.run.mep.century20.exception.DuplicateResourceException;
 import place.run.mep.century20.exception.PasswordMismatchException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -114,12 +115,22 @@ public class UserServiceImpl implements UserService {
     public void updatePassword(String userId, String currentPassword, String newPassword) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-        UserAuth userAuth = userAuthRepository.findByUser(user);
+        
+        UserAuth userAuth = userAuthRepository.findByUser(user)
+                .orElseThrow(() -> new UserNotFoundException("사용자 인증 정보를 찾을 수 없습니다."));
+        
         if (!passwordEncoder.matches(currentPassword, userAuth.getPasswordHash())) {
             throw new PasswordMismatchException("현재 비밀번호가 일치하지 않습니다.");
         }
+        
         userAuth.setPasswordHash(passwordEncoder.encode(newPassword));
         userAuthRepository.save(userAuth);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUserId(username);
     }
 
     @Override

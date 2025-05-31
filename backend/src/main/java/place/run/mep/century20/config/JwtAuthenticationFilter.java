@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import place.run.mep.century20.config.TokenValidationResult;
 
 import java.io.IOException;
 
@@ -37,18 +38,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = jwtTokenProvider.resolveToken(request);
             
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
-                if (authentication instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken) {
-                    ((org.springframework.security.authentication.UsernamePasswordAuthenticationToken) authentication)
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            if (token != null) {
+                TokenValidationResult result = jwtTokenProvider.validateToken(token);
+                if (result.isValid()) {
+                    Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                    if (authentication instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken) {
+                        ((org.springframework.security.authentication.UsernamePasswordAuthenticationToken) authentication)
+                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    }
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("Could not set user authentication in security context", e);
         }
-
-        filterChain.doFilter(request, response);
     }
 }

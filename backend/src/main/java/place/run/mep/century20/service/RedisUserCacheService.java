@@ -10,25 +10,29 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Profile("redis")
-public class UserCacheService {
+public class RedisUserCacheService implements UserCacheServiceInterface {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     @Value("${spring.cache.redis.time-to-live}")
     private Long cacheTtl;
 
+    @Override
     public void cacheUserInfo(String userId, String userInfo) {
         redisTemplate.opsForValue().set("user:" + userId, userInfo, cacheTtl, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public String getCachedUserInfo(String userId) {
         return redisTemplate.opsForValue().get("user:" + userId);
     }
 
+    @Override
     public void invalidateUserCache(String userId) {
         redisTemplate.delete("user:" + userId);
     }
 
+    @Override
     public boolean isUserCached(String userId) {
         return redisTemplate.hasKey("user:" + userId);
     }

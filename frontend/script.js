@@ -12,6 +12,86 @@ const MAX_FREE_VIEWS = 3;
 let isLoggedIn = false;
 let currentUser = null;
 
+// 토큰이 유효하지 않은 경우 처리
+function handleInvalidToken() {
+  clearToken();
+  isLoggedIn = false;
+  currentUser = null;
+  localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  updateAuthUI();
+  alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+}
+
+// 상태 저장 함수
+function saveState() {
+  localStorage.setItem(STORAGE_KEYS.VIEW_COUNT, viewCount);
+  localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, isLoggedIn);
+  localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+}
+
+// 상태 로드 함수
+async function loadState() {
+  viewCount = parseInt(localStorage.getItem(STORAGE_KEYS.VIEW_COUNT)) || 0;
+  const token = getToken();
+  if (token) {
+    try {
+      try {
+        // 토큰 유효성 검사
+        const response = await apiCall('/users/validate-token', 'GET');
+        
+        if (response && response.valid === true) {
+          isLoggedIn = true;
+          // 보안을 위해 필요한 정보만 저장
+          currentUser = {
+              userId: response.user?.userId,
+              nickname: response.user?.nickname,
+              name: response.user?.name
+          };
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+          
+          // 토큰 만료 시간이 1시간 이내일 경우 자동으로 토큰 갱신 시도
+          const tokenExpiration = new Date(response.expiration);
+          const now = new Date();
+          const timeUntilExpiration = tokenExpiration.getTime() - now.getTime();
+          
+          // 토큰 만료 시간이 1시간 이내이거나, 서버 응답이 403 Forbidden인 경우 토큰 갱신 시도
+          if (timeUntilExpiration <= 60 * 60 * 1000 || response.status === 403) {
+            try {
+              const refreshTokenResponse = await apiCall('/users/refresh-token', 'POST');
+              if (refreshTokenResponse && refreshTokenResponse.token) {
+                saveToken(refreshTokenResponse.token);
+                console.log('Token refreshed successfully');
+              }
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
+              handleInvalidToken();
+            }
+          }
+        } else {
+          // 토큰이 유효하지 않은 경우
+          console.warn('Token is invalid:', response);
+          handleInvalidToken();
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        handleInvalidToken();
+      }
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      // 서버 통신 실패나 예기치 않은 에러 발생 시에도 토큰 유지
+      // 서버가 다시 연결되면 자동으로 토큰 유효성 검사가 실행됨
+      console.log('Maintaining token for next validation attempt');
+      isLoggedIn = false;
+      currentUser = null;
+    }
+  } else {
+    isLoggedIn = false;
+    currentUser = null;
+  }
+  updateAuthUI();
+}
+
 // API 설정
 const API_BASE_URL = 'http://localhost:80/api'
 
@@ -40,15 +120,34 @@ async function apiCall(endpoint, method = "GET", data = null) {
       headers,
       body: data ? JSON.stringify(data) : null,
     });
+    
+    // Read the response body once as text
+    const textResponse = await response.text();
+    
     if (!response.ok) {
       let errorMsg = "API 호출 실패";
       try {
-        const errJson = await response.json();
+        // Try to parse the error response as JSON
+        const errJson = JSON.parse(textResponse);
         errorMsg = errJson.message || errJson.error || errorMsg;
-      } catch {}
+      } catch {
+        errorMsg = textResponse; // Use the raw text as error message
+      }
       throw new Error(errorMsg);
     }
-    return await response.json();
+    
+    // Try to parse the response as JSON
+    try {
+      return JSON.parse(textResponse);
+    } catch {
+      try {
+        // Try to parse JSON string wrapped in quotes
+        return JSON.parse(textResponse.replace(/^\"|\"$/g, ''));
+      } catch {
+        // If all else fails, return the raw text
+        return { message: textResponse };
+      }
+    }
   } catch (error) {
     console.error("API Error:", error);
     throw error;
@@ -68,35 +167,42 @@ function clearToken() {
   localStorage.removeItem(STORAGE_KEYS.TOKEN);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  function saveState() {
-    localStorage.setItem(STORAGE_KEYS.VIEW_COUNT, viewCount);
-    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, isLoggedIn);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
-  }
+// UI 업데이트 함수
+function updateAuthUI() {
+    const loginBtn = document.getElementById("login-btn-navbar");
+    const profileBtn = document.getElementById("profile-btn");
+    const logoutBtn = document.getElementById("logout-btn-navbar");
 
-  function loadState() {
-    viewCount = parseInt(localStorage.getItem(STORAGE_KEYS.VIEW_COUNT)) || 0;
-    isLoggedIn = localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN) === "true";
-    currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || "null");
-    updateAuthUI();
-  }
-
-  // 에러 처리 (best practice: error.message 우선, fallback)
-  function handleApiError(error) {
-    if (error && error.message) { 
-      if (error.message === "news is undefined") {
-        alert("뉴스 데이터를 불러오는 데 실패했습니다. 다시 시도해주세요.");
-      } else {
-        alert(error.message);
-      }
-      console.error("API Error:", error);
-    } else {
-      alert("현재 뉴스를 불러오는데 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
-      console.error("Network Error:", error);
+    if (loginBtn) {
+      loginBtn.style.display = isLoggedIn ? "none" : " inline-block";
     }
-  }
+    if (profileBtn) {
+      profileBtn.style.display = isLoggedIn ?  "inline-block" : "none";
+    }
+    if (logoutBtn) {
+      logoutBtn.style.display = isLoggedIn ? "inline-block" : "none";
+    }
+}
 
+// 페이지 초기화
+document.addEventListener("DOMContentLoaded", () => {
+  // 페이지 로드 시 로그인 상태 체크
+  loadState();
+
+
+// 에러 처리 (best practice: error.message 우선, fallback)
+function handleApiError(error) {
+  if (error && error.message) { 
+    if (error.message === "news is undefined") {
+      alert("뉴스 데이터를 불러오는 데 실패했습니다. 다시 시도해주세요.");
+    } else if (error.message === "Invalid credentials") {
+      alert("아이디 또는 비밀번호가 맞지 않습니다. 다시 시도해주세요.");
+    } else {
+      alert(error.message);
+    }
+    console.error("Network Error:", error);
+  }
+}
   const categoryButtons = document.querySelectorAll(".category-btn");
   const randomBtn = document.getElementById("random-btn");
 
@@ -485,10 +591,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const response = await apiCall("/users/me", "GET");
-      currentUser = response;
+      currentUser = {
+        userId: response.userId,
+        nickname: response.nickname,
+        name: response.name
+      };
       saveState();
-
-      // 프로필 정보 표시
       // 한글 인코딩 문제 해결을 위한 함수
       function decodeText(text) {
         if (!text) return "";
@@ -501,8 +609,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 읽기 전용 필드
       document.getElementById("profile-id").textContent = response.userId;
-
-      // 입력 필드
       document.getElementById("profile-name").textContent = decodeText(response.name) || "";
       document.getElementById("profile-nickname").textContent = decodeText(response.nickname) || "";
       document.getElementById("profile-email").textContent = response.email || "";
@@ -511,7 +617,8 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("profile-gender").textContent = response.gender || "";
 
     } catch (error) {
-      handleApiError(error);
+        console.error('프로필 정보 로드 실패:', error);
+        handleApiError(error);
     }
   }
 
@@ -778,4 +885,5 @@ document.addEventListener("DOMContentLoaded", () => {
       showLoginModal();
     }
   })();
-});
+}
+);

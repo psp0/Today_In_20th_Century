@@ -27,10 +27,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with userId: " + userId));
 
-        UserAuth userAuth = userAuthRepository.findByUser(user);
-        if (userAuth == null) {
-            throw new UsernameNotFoundException("User auth record not found for userId: " + userId);
-        }
+        UserAuth userAuth = userAuthRepository.findByUser(user)
+                .orElseThrow(() -> new UsernameNotFoundException("User auth record not found for userId: " + userId));
 
         // 모든 사용자를 ROLE_USER로 반환
         Collection<? extends GrantedAuthority> authorities = java.util.Collections.singletonList(
