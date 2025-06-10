@@ -1,0 +1,70 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 1048576 # 1MB
+
+positions:
+  filename: /tmp/positions.yaml
+  # 읽은 위치를 디스크에 기록하는 주기 설정
+  sync_period: 10s
+
+scrape_configs:
+  - job_name: docker-containers-frontend
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+        # Docker Label 기반 필터링이 이름 기반보다 확장성이 좋음
+        filters:
+          - name: label
+            values: ["loki.enable=true"]
+
+    relabel_configs:
+      # Docker 메타데이터를 Loki 레이블로 변환
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container'
+        regex: '/(.*)'
+        replacement: '${1}'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+      - source_labels: ['__meta_docker_container_label_loki_format']
+        target_label: 'format'
+
+    pipeline_stages:
+      # 1. Docker JSON 로그 포맷을 먼저 파싱
+      - docker: {}
+
+      # 2. Nginx Access Log 처리 (format="nginx", stream="stdout")
+      - match:
+          # Nginx Access Log(stdout)와 Error Log(stderr)를 구분하여 처리
+          selector: '{format="nginx", stream="stdout"}'
+          stages:
+            - regex:
+                expression: '^(?P<remote_addr>[\d\.]+)\s+-\s+(?P<remote_user>[^ ]+)\s+\[(?P<time_local>[^\]]+)\]\s+"(?P<request_method>[^ ]+) (?P<request_uri>[^ ]+) HTTP/(?P<http_version>[^\"]+)"\s+(?P<status_code>\d+)\s+(?P<body_bytes_sent>\d+)\s+"(?P<http_referer>[^\"]+)"\s+"(?P<http_user_agent>[^\"]+)"$'
+            # 로그에 기록된 시간을 실제 시간으로 사용
+            - timestamp:
+                source: time_local
+                format: '02/Jan/2006:15:04:05 -0700'
+            - labels:
+                status_code:
+                request_method:
+                # status_code를 기반으로 집계에 용이한 파생 레이블 생성
+                status_class: '{{ if ge .status_code 500 }}server_error{{ else if ge .status_code 400 }}client_error{{ else }}success{{ end }}'
+            - output:
+                # 원본 로그 라인을 그대로 유지하거나, 필요시 재구성할 수 있습니다.
+                source: _entry # _entry는 파이프라인의 현재 로그 라인을 의미
+
+      # 3. Nginx Error Log 처리 (format="nginx", stream="stderr")
+      - match:
+          selector: '{format="nginx", stream="stderr"}'
+          stages:
+            - regex:
+                expression: '^(?P<time>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2})\s+\[(?P<level>[^\]]+)\]\s+.*'
+            - timestamp:
+                source: time
+                format: '2006/01/02 15:04:05'
+            - labels:
+                level:

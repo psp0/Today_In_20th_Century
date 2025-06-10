@@ -1,0 +1,157 @@
+# Redis 3-Node Cross-Replication
+# Node 3: Master 3 + Slave 2
+version: "3.8"
+
+services:
+  ###################################################
+  #                  MASTER 3 INSTANCE              #
+  ###################################################
+  redis-master-3:
+    image: redis:7.2
+    container_name: redis-master-3
+    labels:
+      - "loki.enable=true"
+      - "loki.format=redis"
+    ports:
+      # Master 3의 외부 접속 포트
+      - "${MASTER_3_PORT:-6379}:6379"
+      - "${MASTER_3_BUS_PORT:-16379}:16379"
+    volumes:
+      - redis_master_3_data:/data
+    command: >
+      redis-server
+      --save ""
+      --appendonly ${REDIS_APPENDONLY:-no}
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout ${REDIS_CLUSTER_NODE_TIMEOUT:-5000}
+      --cluster-announce-ip ${NODE_3_IP}
+      --cluster-announce-port ${MASTER_3_PORT:-6379}
+      --cluster-announce-bus-port ${MASTER_3_BUS_PORT:-16379}      
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1879048192
+      --maxmemory-policy volatile-lru
+    networks:
+      - century_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  redis-master-3-promtail:
+    image: grafana/promtail:2.9.5
+    container_name: redis-master-3-promtail
+    volumes:
+      - ./promtail/promtail-redis-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - redis-master-3
+
+  redis-master-3-exporter:
+    image: oliver006/redis_exporter:v1.71.0
+    container_name: redis-master-3-exporter
+    command: --redis.addr=redis-master-3:6379 --redis.password=${REDIS_PASSWORD} --is-cluster=true
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - redis-master-3
+
+###################################################
+  #                  SLAVE 2 INSTANCE               #
+  #  (Master on Node 2 를 복제)                     #
+  ###################################################
+  redis-slave-2:
+    image: redis:7.2
+    container_name: redis-slave-2
+    labels:
+      - "loki.enable=true"
+      - "loki.format=redis"
+    ports:
+      # Slave 2의 외부 접속 포트 (Master 1과 충돌 방지)
+      - "${SLAVE_2_PORT:-6380}:6379"
+      - "${SLAVE_2_BUS_PORT:-16380}:16379"
+    volumes:
+      - redis_slave_2_data:/data
+    command: >
+      redis-server
+      --save ""
+      --appendonly ${REDIS_APPENDONLY:-no}
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout ${REDIS_CLUSTER_NODE_TIMEOUT:-5000}
+      --cluster-announce-ip ${NODE_3_IP}
+      --cluster-announce-port ${SLAVE_2_PORT:-6380}
+      --cluster-announce-bus-port ${SLAVE_2_BUS_PORT:-16380}
+      --requirepass ${REDIS_PASSWORD}
+      --masterauth ${REDIS_PASSWORD}      
+      --maxmemory 1879048192
+      --maxmemory-policy volatile-lru
+    networks:
+      - century_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  redis-slave-2-promtail:
+    image: grafana/promtail:2.9.5
+    container_name: redis-slave-2-promtail
+    volumes:
+      - ./promtail/promtail-redis-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - redis-slave-2
+
+  redis-slave-2-exporter:
+    image: oliver006/redis_exporter:v1.71.0
+    container_name: redis-slave-2-exporter
+    command: --redis.addr=redis-slave-2:6379 --redis.password=${REDIS_PASSWORD} --is-cluster=true
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - redis-slave-2
+
+
+  # redis-node-3-exporter:
+  #   image: prom/node-exporter:v1.7.0
+  #   container_name: redis-node-3-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - century_network
+  #   restart: unless-stopped
+  #   pid: "host"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--path.rootfs=/rootfs'
+
+networks:
+  century_network:
+    external: true
+
+volumes:
+  redis_master_3_data:
+    driver: local
+  redis_slave_2_data:
+    driver: local

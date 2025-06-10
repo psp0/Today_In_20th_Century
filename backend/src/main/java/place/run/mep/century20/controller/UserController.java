@@ -19,23 +19,27 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping(value = "/me", produces = "application/json; charset=UTF-8")
+    @GetMapping(value = "/me")
     public ResponseEntity<UserInfoDto> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(userService.getUserInfo(userDetails.getUsername()));
+        UserInfoDto userInfo = userService.getUserInfo(userDetails.getUsername());
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .body(userInfo);
     }
 
-    @PatchMapping("/me")
-    public ResponseEntity<UserInfoDto> updateUser(@AuthenticationPrincipal UserDetails userDetails,
-                                                @Valid @RequestBody UpdateUserDto updateUserDto) {
-        return ResponseEntity.ok(userService.updateUser(userDetails.getUsername(), updateUserDto));
-    }
+    // @PatchMapping("/me")
+    // public ResponseEntity<UserInfoDto> updateUser(@AuthenticationPrincipal UserDetails userDetails,
+    //                                             @Valid @RequestBody UpdateUserDto updateUserDto) {
+    //     return ResponseEntity.ok(userService.updateUser(userDetails.getUsername(), updateUserDto));
+    // }
 
-    @PostMapping("/password")
-    public ResponseEntity<?> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
-                                            @RequestBody PasswordChangeDto dto) {
-        userService.updatePassword(userDetails.getUsername(), dto.getCurrentPassword(), dto.getNewPassword());
-        return ResponseEntity.ok("Password updated successfully");
-    }
+    // @PostMapping("/password")
+    // public ResponseEntity<?> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
+    //                                         @RequestBody PasswordChangeDto dto) {
+    //     userService.updatePassword(userDetails.getUsername(), dto.getCurrentPassword(), dto.getNewPassword());
+    //     return ResponseEntity.ok("Password updated successfully");
+    // }
 
     @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdrawUser(@AuthenticationPrincipal UserDetails userDetails) {

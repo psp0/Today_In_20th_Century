@@ -1,8 +1,15 @@
 # Redis 사용 시 프로필 설정
 spring:
   redis:
+    mode: ${REDIS_MODE:standalone}  # Redis 모드 (standalone, cluster)
     host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
+    port: 6379  # Redis 포트 (기본값: 6379)
+    cluster:      
+      nodes:
+        - ${NODE_1_IP:redis-master-1}:${MASTER_1_PORT:6379}  # Redis 클러스터 노드 1
+        - ${NODE_2_IP:redis-master-2}:${MASTER_2_PORT:6380}  # Redis 클러스터 노드 2
+        - ${NODE_3_IP:redis-master-3}:${MASTER_3_PORT:6381}  # Redis 클러스터 노드 3 
+      max-redirects: 5 # 클러스터 리다이렉션 최대 횟수 (기본값 5)
     database: ${REDIS_DB:0}  # Redis DB 번호 (기본값: 0)
     timeout: ${REDIS_TIMEOUT:5000ms}  # Redis 연결 타임아웃 (5초)
     password: ${REDIS_PASSWORD:}  # Redis 비밀번호 (필수 설정)
@@ -20,4 +27,7 @@ jwt:
     cache-key-prefix: ${JWT_CACHE_KEY_PREFIX:jwt-cache}  # JWT 캐시 키 접두사
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRE_TIME:3600000}  # 액세스 토큰 유효기간 (밀리초 단위)
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRE_TIME:86400000}  # 리프레시 토큰 유효기간 (밀리초 단위)
-  
+
+news:
+  recommendation:
+    strategy: ${NEWS_RECOMMENDATION_STRATEGY:legacy}

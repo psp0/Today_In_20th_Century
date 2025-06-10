@@ -23,7 +23,8 @@ prometheus/data/
 
 # MySQL
 mysql/data/
-
+mysql/raw_data/
+mysql/init/cleaned_news_data.tsv
 # Logs
 *.log
 logs/

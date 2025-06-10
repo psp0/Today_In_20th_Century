@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.2
+    container_name: redis
+    labels:
+      - "loki.enable=true"
+      - "loki.format=redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server 
+      --save ""
+      --appendonly ${REDIS_APPENDONLY:-no} 
+      --requirepass ${REDIS_PASSWORD}
+    networks:
+      - century_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-promtail:
+    image: grafana/promtail:2.9.5
+    container_name: redis-promtail
+    volumes:
+      - ./promtail/promtail-redis-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.71.0
+    container_name: redis-exporter
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: --redis.addr=redis:6379 --redis.password=${REDIS_PASSWORD}
+    networks:
+      - century_network
+    depends_on:
+      - redis
+
+  # redis-node-exporter:
+  #   image: prom/node-exporter:v1.7.0
+  #   container_name: redis-node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - century_network
+  #   restart: unless-stopped
+  #   pid: "host"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--path.rootfs=/rootfs'
+
+networks:
+  century_network:
+    external: true
+
+volumes:
+  redis_data:
+    driver: local

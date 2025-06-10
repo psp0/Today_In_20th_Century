@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  century-backend-1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: century-backend-1
+    labels:
+      - "loki.enable=true"
+      - "loki.format=spring-boot"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_TOKEN_EXPIRE_TIME=${JWT_ACCESS_TOKEN_EXPIRE_TIME}
+      - JWT_REFRESH_TOKEN_EXPIRE_TIME=${JWT_REFRESH_TOKEN_EXPIRE_TIME}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
+      - CACHE_TTL=${CACHE_TTL}
+      - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX}
+      - JWT_CACHE_TTL=${JWT_CACHE_TTL}
+      - JWT_CACHE_KEY_PREFIX=${JWT_CACHE_KEY_PREFIX}
+      - NODE_1_IP=${NODE_1_IP}
+      - MASTER_1_PORT=${MASTER_1_PORT}
+      - NODE_2_IP=${NODE_2_IP}
+      - MASTER_2_PORT=${MASTER_2_PORT}
+      - NODE_3_IP=${NODE_3_IP}
+      - MASTER_3_PORT=${MASTER_3_PORT}
+      - REDIS_MODE=${REDIS_MODE}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - century_network
+
+  backend-1-promtail:
+    image: grafana/promtail:2.9.5
+    container_name: backend-1-promtail
+    volumes:
+      - ./promtail/promtail-backend-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - century_network
+    restart: unless-stopped
+    depends_on:
+      - century-backend-1
+
+  # app-node-exporter:
+  #   image: prom/node-exporter:v1.7.0
+  #   container_name: app-node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - century_network
+  #   restart: unless-stopped
+  #   pid: "host"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--path.rootfs=/rootfs'
+
+networks:
+  century_network:
+    external: true

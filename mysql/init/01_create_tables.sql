@@ -55,12 +55,14 @@ CREATE TABLE news_articles (
     address VARCHAR(100),
     published_date DATE NOT NULL,
     press VARCHAR(20),
-    reporter VARCHAR(100),
+    reporter VARCHAR(255),
     title VARCHAR(255),
     category_level1 VARCHAR(100),
     category_level2 VARCHAR(100),
     category_level3 VARCHAR(255),
     content TEXT,
-    INDEX `idx_main_category` (`main_category`),
-    INDEX `idx_published_date` (`published_date`)
+    pub_day TINYINT AS (DAY(published_date)) VIRTUAL,
+    pub_month TINYINT AS (MONTH(published_date)) VIRTUAL,
+    INDEX `idx_pub_dm` (`pub_month`, `pub_day`),
+    INDEX `idx_cat_dm` (`main_category`, `pub_month`, `pub_day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

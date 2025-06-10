@@ -1,0 +1,41 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push # 모니터링 노드의 Loki 주소로 변경 필요
+    batchwait: 1s
+    batchsize: 1048576
+
+positions:
+  filename: /tmp/positions.yaml
+  sync_period: 10s
+
+scrape_configs:
+  - job_name: redis-logs
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+        filters:
+          - name: label
+            values: ["loki.format=redis"] # Redis 컨테이너의 레이블로 필터링
+
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container'
+        regex: '/(.*)'
+        replacement: '${1}'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+
+    pipeline_stages:
+      - docker: {}
+      - regex:
+          expression: '^\d+:(M|C|S|X)\s(?P<time>\d{2}\s\w{3}\s\d{4}\s\d{2}:\d{2}:\d{2}\.\d{3})\s(?P<role>\*|\.|-)\s(?P<message>.*)$'
+      - timestamp:
+          source: time
+          format: '02 Jan 2006 15:04:05.000'
+      - labels:
+          role:
+      - output:
+          source: message

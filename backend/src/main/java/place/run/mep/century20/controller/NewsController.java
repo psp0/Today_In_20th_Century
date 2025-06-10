@@ -5,6 +5,8 @@ import place.run.mep.century20.entity.NewsArticle;
 import place.run.mep.century20.service.NewsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,10 +24,12 @@ public class NewsController {
 
     @GetMapping("/random/today")
     public ResponseEntity<List<NewsResponse>> getTodayRandomNews(
-            @RequestParam(required = false, defaultValue = "all") String category) {
+            @RequestParam(required = false, defaultValue = "all") String category,
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             LocalDate today = LocalDate.now();
-            return newsService.getRandomNews(today.getDayOfMonth(), today.getMonthValue(), category)
+            String userId = (userDetails != null) ? userDetails.getUsername() : null;
+            return newsService.getRandomNews(today.getDayOfMonth(), today.getMonthValue(), category, userId)
                     .map(article -> ResponseEntity.ok(Collections.singletonList(new NewsResponse(article))))
                     .orElse(ResponseEntity.ok(Collections.emptyList()));
         } catch (Exception e) {
@@ -35,13 +39,12 @@ public class NewsController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<NewsResponse>> searchNews(
-            @RequestParam int year,
+    public ResponseEntity<List<NewsResponse>> searchNews(       
             @RequestParam int month,
             @RequestParam int day,
             @RequestParam(required = false, defaultValue = "all") String category) {
         try {
-            return ResponseEntity.ok(newsService.searchNews(year, month, day, category)
+            return ResponseEntity.ok(newsService.searchNews( month, day, category)
                     .stream()
                     .map(NewsResponse::new)
                     .collect(Collectors.toList()));

@@ -1,35 +1,42 @@
 package place.run.mep.century20.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import place.run.mep.century20.entity.NewsArticle;
+import java.util.Optional;
+import java.util.Set;
 
-import java.util.concurrent.TimeUnit;
+public interface NewsCacheService {
+    void cacheArticleIdsToSet(String key, Set<String> articleIds);
+    void cacheArticleIdsToSetWithNoExpiration(String key, Set<String> articleIds);
+    void cacheArticleIdsToSetWithTtl(String key, Set<String> articleIds, long ttlSeconds);
+    Set<String> getArticleIdsFromSet(String key);
+    String getRandomArticleIdFromSet(String key);
+    boolean hasKey(String key);
+    void cacheArticle(String key, NewsArticle article, long ttlSeconds);
+    Optional<NewsArticle> getArticle(String key);
+    void deleteKey(String key);
+    long getDefaultTtlSeconds();
+    /**
+     * 두 Set의 차집합(difference)을 구합니다. (key1 - key2)
+     */
+    Set<String> getSetDifference(String key1, String key2);
 
-@Service
-@Profile("redis")
-public class NewsCacheService {
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    /**
+     * Set에 멤버(ID)를 추가합니다.
+     */
+    void addToSet(String key, String... values);
 
-    @Value("${spring.cache.redis.time-to-live}")
-    private Long cacheTtl;
+    /**
+     * Hash에서 특정 필드(뉴스 ID)의 데이터(뉴스 JSON)를 조회합니다.
+     */
+    Optional<NewsArticle> getArticleFromHash(String hashKey, String field);
 
-    public void cacheNews(String date, String newsData) {
-        redisTemplate.opsForValue().set("news:" + date, newsData, cacheTtl, TimeUnit.MILLISECONDS);
-    }
+    /**
+     * Hash에 특정 필드와 데이터(뉴스)를 저장합니다.
+     */
+    void cacheArticleToHash(String hashKey, String field, NewsArticle article);
 
-    public String getCachedNews(String date) {
-        return redisTemplate.opsForValue().get("news:" + date);
-    }
-
-    public void invalidateNewsCache(String date) {
-        redisTemplate.delete("news:" + date);
-    }
-
-    public boolean isNewsCached(String date) {
-        return redisTemplate.hasKey("news:" + date);
-    }
+    /**
+     * Hash에서 임의의 필드(뉴스 ID)를 조회합니다.
+     */
+    Optional<String> getRandomFieldFromHash(String hashKey);
 }

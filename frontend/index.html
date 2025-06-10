@@ -9,12 +9,12 @@
   </head>
   <body>
     <nav class="main-navbar">
-      <div class="navbar-logo">20C News</div>
-      <ul class="navbar-menu">
+      <div class="navbar-logo">20세기 오늘의 뉴우스</div>
+      <!-- <ul class="navbar-menu">
         <li><a href="#">홈</a></li>
         <li><a href="#" id="about-link">소개</a></li>
         <li><a href="#" id="contact-link">문의</a></li>
-      </ul>
+      </ul> -->
       <div class="navbar-user-actions">
         <button id="profile-btn" class="profile-btn" type="button" aria-label="내 프로필 열기">👤</button>
         <button id="login-btn-navbar" class="login-btn" type="button">로그인</button>
@@ -28,17 +28,17 @@
             <h2 id="news-title"></h2>
             <div class="news-meta">
               <span id="published-date"></span>
+              <span id="main-category"></span>
               <span id="category-levels"></span>
             </div>
           </div>
-          <div class="news-content" id="news-content"></div>
+          <div class="news-content" id="news-content"></div><a id="address" href="#" target="_blank" rel="noopener noreferrer"></a>
           <div class="news-footer">
             <span id="press"></span>
-            <span id="reporter"></span>
-            <a id="address" href="#" target="_blank" rel="noopener noreferrer"></a>
+            <span id="reporter"></span>            
           </div>
-          <div class="news-empty-message" id="news-empty-message" style="display: none">
-            <p>표시할 뉴스가 없습니다.<br />날짜나 카테고리를 변경해보세요.</p>
+          <div class="news-empty-message" id="news-empty-message">
+            <p>표시할 뉴스가 없습니다.<br />가져오기 버튼을 눌러보세요!</p>
           </div>
         </section>
         <div class="action-buttons">
@@ -48,16 +48,96 @@
       <aside class="sidebar">
         <form class="date-search vertical" onsubmit="return false;">
           <label for="news-date">날짜</label>
-          <input type="date" id="news-date" max="2000-12-31" min="1990-01-01" value="2000-01-01" />
-          <button id="search-date-btn" type="button">다른 뉴스 가져오기</button>
+          <div class="inline-selects">
+            <select id="month" >
+                <option value="">월 선택</option>
+                <option value="01">1월</option>
+                <option value="02">2월</option>
+                <option value="03">3월</option>
+                <option value="04">4월</option>
+                <option value="05">5월</option>
+                <option value="06">6월</option>
+                <option value="07">7월</option>
+                <option value="08">8월</option>
+                <option value="09">9월</option>
+                <option value="10">10월</option>
+                <option value="11">11월</option>
+                <option value="12">12월</option>
+            </select>
+            <select id="day">
+                 <option value="">일 선택</option>
+                    <option value="01">1일</option>
+                    <option value="02">2일</option>
+                    <option value="03">3일</option>
+                    <option value="04">4일</option>
+                    <option value="05">5일</option>
+                    <option value="06">6일</option>
+                    <option value="07">7일</option>
+                    <option value="08">8일</option>
+                    <option value="09">9일</option>
+                    <option value="10">10일</option>
+                    <option value="11">11일</option>
+                    <option value="12">12일</option>
+                    <option value="13">13일</option>
+                    <option value="14">14일</option>
+                    <option value="15">15일</option>
+                    <option value="16">16일</option>
+                    <option value="17">17일</option>
+                    <option value="18">18일</option>
+                    <option value="19">19일</option>
+                    <option value="20">20일</option>
+                    <option value="21">21일</option>
+                    <option value="22">22일</option>
+                    <option value="23">23일</option>
+                    <option value="24">24일</option>
+                    <option value="25">25일</option>
+                    <option value="26">26일</option>
+                    <option value="27">27일</option>
+                    <option value="28">28일</option>
+                    <option value="29">29일</option>
+                    <option value="30">30일</option>
+                    <option value="31">31일</option>
+            </select>
+        </div>  
+          <button id="search-date-btn" type="button">다른일자 뉴스 가져오기</button>
         </form>
         <div class="category-filter vertical" role="group" aria-label="카테고리 선택">
           <button class="category-btn active" data-category="all" type="button">전체</button>
-          <button class="category-btn" data-category="물가" type="button">물가</button>
-          <button class="category-btn" data-category="가계대출" type="button">가계대출</button>
-          <button class="category-btn" data-category="기준금리" type="button">기준금리</button>
+          <button class="category-btn" data-category="게임" type="button">게임</button>
+          <button class="category-btn" data-category="고령화" type="button">고령화</button>
+          <button class="category-btn" data-category="공정" type="button">공정</button>
+          <button class="category-btn" data-category="관광" type="button">관광</button>
+          <button class="category-btn" data-category="국회" type="button">국회</button>
+          <button class="category-btn" data-category="노인" type="button">노인</button>
+          <button class="category-btn" data-category="다문화" type="button">다문화</button>
+          <button class="category-btn" data-category="대통령" type="button">대통령</button>
+          <button class="category-btn" data-category="문화" type="button">문화</button>
+          <button class="category-btn" data-category="미국" type="button">미국</button>
+          <button class="category-btn" data-category="미세먼지" type="button">미세먼지</button>
+          <button class="category-btn" data-category="민주주의" type="button">민주주의</button>
+          <button class="category-btn" data-category="백신" type="button">백신</button>
+          <button class="category-btn" data-category="불평등" type="button">불평등</button>
+          <button class="category-btn" data-category="사회적약자" type="button">사회적약자</button>
+          <button class="category-btn" data-category="실업" type="button">실업</button>
+          <button class="category-btn" data-category="어린이" type="button">어린이</button>
+          <button class="category-btn" data-category="언론" type="button">언론</button>
+          <button class="category-btn" data-category="언론중재" type="button">언론중재</button>
+          <button class="category-btn" data-category="여성" type="button">여성</button>
+          <button class="category-btn" data-category="일본" type="button">일본</button>
+          <button class="category-btn" data-category="일자리" type="button">일자리</button>
+          <button class="category-btn" data-category="자유" type="button">자유</button>
+          <button class="category-btn" data-category="장애인" type="button">장애인</button>
+          <button class="category-btn" data-category="전염병" type="button">전염병</button>
+          <button class="category-btn" data-category="정의" type="button">정의</button>
+          <button class="category-btn" data-category="중국" type="button">중국</button>
+          <button class="category-btn" data-category="질병" type="button">질병</button>
+          <button class="category-btn" data-category="청와대" type="button">청와대</button>
+          <button class="category-btn" data-category="체육" type="button">체육</button>
+          <button class="category-btn" data-category="평등" type="button">평등</button>
+          <button class="category-btn" data-category="평화" type="button">평화</button>
           <button class="category-btn" data-category="파업" type="button">파업</button>
-          <button class="category-btn" data-category="출산율" type="button">출산율</button>
+          <button class="category-btn" data-category="한류" type="button">한류</button>
+          <button class="category-btn" data-category="헌법" type="button">헌법</button>
         </div>
         <div class="search-list">
           <ul id="news-list">
@@ -99,6 +179,7 @@
             <button id="check-id-btn" type="button">중복 확인</button>
             <div id="id-check-message" class="id-check-message"></div>
             <label for="signup-password">비밀번호</label>
+            <small class="input-hint">(8자 이상)</small>
             <input type="password" id="signup-password" placeholder="비밀번호" required minlength="8" title="비밀번호는 8자 이상이어야 합니다." />
             <label for="signup-confirm">비밀번호 확인</label>
             <input type="password" id="signup-confirm" placeholder="비밀번호 확인" required />
@@ -109,6 +190,7 @@
             <label for="signup-nickname">닉네임</label>
             <input type="text" id="signup-nickname" placeholder="닉네임" required />
             <label for="signup-phone">전화번호</label>
+            <small class="input-hint">(예: 010-1234-5678)</small>
             <input for ="signup-phone" type="tel" id="signup-phone" placeholder="전화번호" required pattern="^01(?:0|1|[6-9])-(?:\d{3}|\d{4})-\d{4}$" title="올바른 휴대폰 번호 형식이어야 합니다. (예: 010-1234-5678)" />
             <label for="signup-birthdate">생년월일</label>
             <input type="date" id="signup-birthdate" required />

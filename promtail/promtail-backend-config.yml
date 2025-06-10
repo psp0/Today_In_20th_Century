@@ -1,0 +1,58 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 1048576 # 1MB
+
+positions:
+  filename: /tmp/positions.yaml
+  # 읽은 위치를 디스크에 기록하는 주기 설정
+  sync_period: 10s
+
+scrape_configs:
+  - job_name: docker-containers-backend
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+        # Docker Label 기반 필터링이 이름 기반보다 확장성이 좋음
+        filters:
+          - name: label
+            values: ["loki.enable=true"]
+
+    relabel_configs:
+      # Docker 메타데이터를 Loki 레이블로 변환
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container'
+        regex: '/(.*)'
+        replacement: '${1}'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+      - source_labels: ['__meta_docker_container_label_loki_format']
+        target_label: 'format'
+
+    pipeline_stages:
+      # 1. Docker JSON 로그 포맷을 먼저 파싱
+      - docker: {}
+
+      # 2. Spring Boot 로그 처리 (format="spring-boot")
+      - match:
+          selector: '{format="spring-boot"}'
+          stages:
+            # Java Stack Trace와 같은 여러 줄 로그를 하나로 합침
+            - multiline:
+                firstline: '^\d{4}-\d{2}-\d{2}'
+                max_wait_time: 3s
+            - regex:
+                expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+(?P<level>[A-Z]+)\s+(?P<pid>\d*)\s+---\s+\[\s*(?P<thread>[^\]]*)\s*\]\s+(?P<logger>[^\s]+)\s*:\s*(?P<message>.*)$'
+            # 로그에 기록된 시간을 실제 시간으로 사용
+            - timestamp:
+                source: time
+                format: '2006-01-02 15:04:05.000'
+            - labels:
+                level:
+                logger:
+            - output:
+                source: message

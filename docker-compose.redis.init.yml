@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  redis-cluster-init:
+    image: redis:7.2
+    container_name: redis-cluster-init
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - century_network
+    command: >
+      sh -c "
+        echo 'Waiting for Redis nodes to be ready...';
+        # 모든 레디스 노드가 준비될 때까지 대기합니다.
+        until redis-cli -h redis-master-1 -p 6379 -a \"$REDIS_PASSWORD\" ping &&
+              redis-cli -h redis-master-2 -p 6379 -a \"$REDIS_PASSWORD\" ping &&
+              redis-cli -h redis-master-3 -p 6379 -a \"$REDIS_PASSWORD\" ping &&
+              redis-cli -h redis-slave-1 -p 6379 -a \"$REDIS_PASSWORD\" ping &&
+              redis-cli -h redis-slave-2 -p 6379 -a \"$REDIS_PASSWORD\" ping &&
+              redis-cli -h redis-slave-3 -p 6379 -a \"$REDIS_PASSWORD\" ping; do
+          echo '...Still waiting...';
+          sleep 3;
+        done;
+
+        echo 'All Redis nodes are ready.';
+        echo 'Creating cluster with master nodes only...';
+        redis-cli --cluster create \
+          redis-master-1:6379 \
+          redis-master-2:6379 \
+          redis-master-3:6379 \
+          --cluster-yes \
+          -a \"$REDIS_PASSWORD\";
+        
+        echo 'Waiting for cluster to form...';
+        sleep 5;
+
+        # 1. 마스터 노드 ID 가져오기
+        echo 'Getting master node IDs...';
+        MASTER1_ID=$(redis-cli -h redis-master-1 -p 6379 -a \"$REDIS_PASSWORD\" CLUSTER NODES | grep myself | awk '{print \$1}');
+        MASTER2_ID=$(redis-cli -h redis-master-2 -p 6379 -a \"$REDIS_PASSWORD\" CLUSTER NODES | grep myself | awk '{print \$1}');
+        MASTER3_ID=$(redis-cli -h redis-master-3 -p 6379 -a \"$REDIS_PASSWORD\" CLUSTER NODES | grep myself | awk '{print \$1}');
+
+        echo \"Master 1 ID: $MASTER1_ID\";
+        echo \"Master 2 ID: $MASTER2_ID\";
+        echo \"Master 3 ID: $MASTER3_ID\";
+
+        # 2. 슬레이브 노드를 클러스터에 추가하고 각 마스터에 복제본으로 명시적 할당
+        echo 'Adding slave nodes to the cluster...';
+        redis-cli --cluster add-node redis-slave-1:6379 redis-master-1:6379 --cluster-slave --cluster-master-id \"$MASTER1_ID\" -a \"$REDIS_PASSWORD\";
+        echo 'Added slave-1 to master-1';
+        
+        redis-cli --cluster add-node redis-slave-2:6379 redis-master-2:6379 --cluster-slave --cluster-master-id \"$MASTER2_ID\" -a \"$REDIS_PASSWORD\";
+        echo 'Added slave-2 to master-2';
+
+        redis-cli --cluster add-node redis-slave-3:6379 redis-master-3:6379 --cluster-slave --cluster-master-id \"$MASTER3_ID\" -a \"$REDIS_PASSWORD\";
+        echo 'Added slave-3 to master-3';
+
+        echo 'Cluster setup complete with manual replication.';
+
+        # 클러스터 상태 확인
+        echo 'Checking cluster status...';
+        redis-cli --cluster check redis-master-1:6379 -a \"$REDIS_PASSWORD\";
+        
+        echo 'Container will exit.';
+      "
+    restart: "no"
+
+networks:
+  century_network:
+    external: true

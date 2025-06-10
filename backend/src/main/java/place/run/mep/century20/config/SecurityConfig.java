@@ -57,7 +57,8 @@ public class SecurityConfig {
                             "/api/users/check-id/**",
                             "/api/users/token/refresh",
                             "/swagger-ui/**",
-                            "/v3/api-docs/**"
+                            "/v3/api-docs/**",
+                            "/actuator/**"
                         ).permitAll()
                         .anyRequest().hasAuthority("ROLE_USER")
                 )

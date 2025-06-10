@@ -1,0 +1,84 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    labels:
+      - "loki.enable=true"
+      - "loki.format=mysql"
+    command: ["--default-authentication-plugin=mysql_native_password", "--secure-file-priv=/docker-entrypoint-initdb.d"]
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${SPRING_DATASOURCE_USERNAME}", "-p${SPRING_DATASOURCE_PASSWORD}"]          
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - century_network
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: mysql-exporter
+    ports:
+      - "9104:9104"
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql-exporter/my.cnf
+    command: 
+      - "--config.my-cnf=/etc/mysql-exporter/my.cnf"
+      - "--mysqld.address=mysql:3306"
+      - "--mysqld.username=root"
+    environment:
+      - MYSQL_PWD=${SPRING_DATASOURCE_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - century_network
+    restart: unless-stopped
+
+  db-promtail:
+    image: grafana/promtail:2.9.5
+    container_name: db-promtail
+    volumes:
+      - ./promtail/promtail-db-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml    
+    networks:
+      - century_network
+    restart: unless-stopped
+
+  # db-node-exporter:
+  #   image: prom/node-exporter:v1.7.0
+  #   container_name: db-node-exporter
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - century_network
+  #   restart: unless-stopped
+  #   pid: "host"
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--path.rootfs=/rootfs'
+
+networks:
+  century_network:
+    external: true
+
+volumes:
+  mysql_data:
+    driver: local

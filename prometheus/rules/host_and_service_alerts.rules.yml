@@ -1,0 +1,88 @@
+groups:
+- name: host_alerts
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m # 1분 동안 down 상태가 지속되면 알림
+    labels:
+      severity: critical # 알림 심각도
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+
+  - alert: HostHighCpuLoad
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host high CPU load on {{ $labels.instance }}"
+      description: "{{ $labels.instance }} CPU load is {{ $value | printf \"%.2f\" }}% for 5 minutes."
+      value: "{{ $value | printf \"%.2f\" }}%"
+
+  - alert: HostHighMemoryUsage
+    expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host high memory usage on {{ $labels.instance }}"
+      description: "{{ $labels.instance }} memory usage is {{ $value | printf \"%.2f\" }}% for 5 minutes."
+      value: "{{ $value | printf \"%.2f\" }}%"
+
+  - alert: HostHighDiskUsage
+    expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Host high disk usage on {{ $labels.instance }}"
+      description: "{{ $labels.instance }} disk usage for / is {{ $value | printf \"%.2f\" }}% for 5 minutes."
+      value: "{{ $value | printf \"%.2f\" }}%"
+
+- name: service_alerts # 서비스별 특화 알림 (예: MySQL, Redis)
+  rules:
+  - alert: MysqlDown
+    expr: mysql_up == 0 # MySQL Exporter가 제공하는 메트릭 기준
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "MySQL down on {{ $labels.instance }}"
+      description: "MySQL instance {{ $labels.instance }} is down."
+
+  - alert: RedisDown
+    expr: redis_up == 0 # Redis Exporter가 제공하는 메트릭 기준
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis down on {{ $labels.instance }}"
+      description: "Redis instance {{ $labels.instance }} is down."
+
+  # Spring Boot 애플리케이션 상태 (actuator/health 엔드포인트 메트릭 활용)
+  - alert: SpringBootAppDown
+    expr: health_status{job="spring-boot", status="UP"} == 0 # actuator/health 메트릭 예시
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Spring Boot application {{ $labels.instance }} is down or unhealthy"
+      description: "The Spring Boot application at {{ $labels.instance }} is reporting as not UP."
+
+  - alert: SpringBootAppHighErrorRate
+    # http_server_requests_seconds_count{job="spring-boot", outcome="SERVER_ERROR", exception!="None"}
+    # 위와 같은 메트릭을 사용하여 에러율 계산 가능
+    expr: sum(rate(http_server_requests_seconds_count{job="spring-boot", status=~"5.."}[5m])) by (instance) / sum(rate(http_server_requests_seconds_count{job="spring-boot"}[5m])) by (instance) * 100 > 5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Spring Boot application {{ $labels.instance }} has high error rate"
+      description: "The Spring Boot application at {{ $labels.instance }} has an error rate of {{ $value | printf \"%.2f\" }}% over the last 5 minutes."
+      value: "{{ $value | printf \"%.2f\" }}%"
+
+# 참고: 위 규칙들은 node_exporter, mysql_exporter, redis_exporter, spring-boot-actuator-prometheus가
+# 해당 메트릭을 제공한다고 가정합니다. 실제 사용하는 exporter와 메트릭 이름에 맞춰 수정해야 합니다.
+# 예를 들어, node_exporter를 사용하지 않는다면 Host* 관련 알림은 동작하지 않습니다.
+# 각 exporter의 문서를 참고하여 사용 가능한 메트릭을 확인하세요.

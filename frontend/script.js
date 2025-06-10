@@ -129,7 +129,19 @@ async function apiCall(endpoint, method = "GET", data = null) {
       try {
         // Try to parse the error response as JSON
         const errJson = JSON.parse(textResponse);
-        errorMsg = errJson.message || errJson.error || errorMsg;
+        if (typeof errJson === 'object') {
+          // 필드별 에러가 있을 경우 각 필드별 메시지 표시
+          if (Object.keys(errJson).length > 0) {
+            errorMsg = "입력한 정보를 확인해주세요:\n\n";
+            Object.entries(errJson).forEach(([field, message]) => {
+              errorMsg += `${field} - ${message}\n`;
+            });
+          } else {
+            errorMsg = errJson.message || errJson.error || errorMsg;
+          }
+        } else {
+          errorMsg = errJson;
+        }
       } catch {
         errorMsg = textResponse; // Use the raw text as error message
       }
@@ -193,6 +205,24 @@ document.addEventListener("DOMContentLoaded", () => {
 // 에러 처리 (best practice: error.message 우선, fallback)
 function handleApiError(error) {
   if (error && error.message) { 
+    try {
+      // JSON 문자열일 경우 파싱
+      const errorData = JSON.parse(error.message);
+      if (typeof errorData === 'object') {
+        // 여러 필드 에러가 있을 경우 모두 표시
+        if (Object.keys(errorData).length > 0) {
+          let errorMessage = "입력한 정보를 확인해주세요:\n\n";
+          Object.entries(errorData).forEach(([field, message]) => {
+            errorMessage += `${field} - ${message}\n`;
+          });
+          alert(errorMessage);
+          return;
+        }
+      }
+    } catch (e) {
+      // 파싱 실패 시 기존 로직 유지
+    }
+
     if (error.message === "news is undefined") {
       alert("뉴스 데이터를 불러오는 데 실패했습니다. 다시 시도해주세요.");
     } else if (error.message === "Invalid credentials") {
@@ -239,7 +269,10 @@ function handleApiError(error) {
     loadingSpinner.style.display = "none";
   }
 
-  // 로딩 중 주요 버튼 disabled 처리 함수
+  // Show the news-empty-message by default
+const newsEmptyMessage = document.getElementById("news-empty-message");
+
+// 로딩 중 주요 버튼 disabled 처리 함수
   function setLoadingStateForButtons(disabled) {
     [
       document.getElementById("login-btn"),
@@ -274,30 +307,72 @@ function handleApiError(error) {
 
   // 뉴스 가져오기 함수 (오늘의 랜덤 뉴스)
   async function fetchTodayRandomNews(category = "전체") {
-    try {
-      const response = await apiCall(
-        `/news/random/today?category=${category}`,
-        "GET"
-      );
-      return response.news;
-    } catch (error) {
-      throw error;
+  try {
+    const apiResponse = await apiCall(
+      `/news/random/today?category=${category}`,
+      "GET"
+    );
+
+    // Hide the news-empty-message if news is successfully fetched
+    newsEmptyMessage.style.display = "none";
+
+    // 1. API 응답이 배열이고, 첫 번째 요소가 유효한 객체인 경우
+    if (Array.isArray(apiResponse) && apiResponse.length > 0 && typeof apiResponse[0] === 'object' && apiResponse[0] !== null) {
+      return apiResponse[0]; // 배열의 첫 번째 뉴스를 반환
     }
+    // 2. API 응답 객체 내에 'news' 속성으로 뉴스 객체가 있는 경우
+    else if (apiResponse && typeof apiResponse.news === 'object' && apiResponse.news !== null) {
+      return apiResponse.news;
+    }
+    // 3. API 응답 자체가 뉴스 객체인 경우
+    else if (apiResponse && typeof apiResponse === 'object' && !Array.isArray(apiResponse) && apiResponse.title) {
+      return apiResponse;
+    }
+    // 4. 위 조건들에 해당하지 않으면, 뉴스 데이터를 찾을 수 없는 것으로 간주
+    else {
+      console.warn("오늘의 랜덤 뉴스 데이터 형식이 예상과 다릅니다. API 응답:", apiResponse);
+      throw new Error("news is undefined");
+    }
+  } catch (error) {
+    throw error;
   }
+}
+  
 
   // 뉴스 검색 함수
   async function searchNews(date, category) {
-    const [year, month, day] = date.split('-');
-    try {
-      const response = await apiCall(
-        `/news/search?year=${year}&month=${month}&day=${day}&category=${category}`,
-        "GET"
-      );
-      return response.news;
-    } catch (error) {
-      throw error;
+  const [month, day] = date.split('-');
+  try {
+    const apiResponse = await apiCall(
+      `/news/search?month=${month}&day=${day}&category=${category}`,
+      "GET"
+    );
+
+    // Hide the news-empty-message if news is successfully fetched
+    newsEmptyMessage.style.display = "none";
+
+    // 1. API 응답이 배열이고, 첫 번째 요소가 유효한 객체인 경우
+    if (Array.isArray(apiResponse) && apiResponse.length > 0 && typeof apiResponse[0] === 'object' && apiResponse[0] !== null) {
+      return apiResponse[0]; // 검색 결과 중 첫 번째 뉴스를 반환
     }
+    // 2. API 응답 객체 내에 'news' 속성으로 뉴스 객체가 있는 경우
+    else if (apiResponse && typeof apiResponse.news === 'object' && apiResponse.news !== null) {
+      return apiResponse.news;
+    }
+    // 3. API 응답 자체가 뉴스 객체인 경우
+    else if (apiResponse && typeof apiResponse === 'object' && !Array.isArray(apiResponse) && apiResponse.title) {
+      return apiResponse;
+    }
+    // 4. 위 조건들에 해당하지 않으면, 뉴스 데이터를 찾을 수 없는 것으로 간주
+    else {
+      console.warn("검색된 뉴스 데이터 형식이 예상과 다릅니다. API 응답:", apiResponse);
+      throw new Error("news is undefined");
+    }
+  } catch (error) {
+    throw error;
   }
+}
+  
 
   // 카테고리 버튼 클릭 시
   categoryButtons.forEach((button) => {
@@ -306,14 +381,29 @@ function handleApiError(error) {
       const category = button.dataset.category;
       categoryButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
+      // 날짜 선택 여부 확인
+      const monthSelect = document.getElementById('month');
+      const daySelect = document.getElementById('day');
+      const selectedMonth = monthSelect.value;
+      const selectedDay = daySelect.value;
+      
       if (viewCount >= MAX_FREE_VIEWS && !isLoggedIn) {
         alert("무료 조회 횟수를 초과했습니다. 로그인 후 계속 사용해주세요.");
         showLoginModal();
         return;
       }
+      
       showLoading();
       try {
-        const news = await fetchTodayRandomNews(category);
+        let news;
+        if (selectedMonth && selectedDay) {
+          // 날짜가 선택되어 있다면 searchNews 호출
+          const selectedDate = `${selectedMonth}-${selectedDay}`;
+          news = await searchNews(selectedDate, category);
+        } else {
+          // 날짜가 선택되지 않았다면 fetchTodayRandomNews 호출
+          news = await fetchTodayRandomNews(category);
+        }
         displayNews(news);
         updateViewCount();
       } catch (error) {
@@ -324,25 +414,20 @@ function handleApiError(error) {
     });
   });
 
-  // 날짜 선택 후 뉴스 검색
-  const dateInput = document.getElementById("news-date");
-  dateInput.addEventListener("change", () => {
-    const date = dateInput.value;
-    const category = document.querySelector(".category-btn.active").dataset.category;
-    if (!date) {
-      alert("날짜를 선택해주세요.");
-      return;
-    }
-    searchNews(date, category);
-  }
-  );
 
   const searchBtn = document.getElementById("search-date-btn");
   searchBtn.addEventListener("click", async () => {
-    const date = document.getElementById("news-date").value;
+    const month = document.getElementById('month').value;
+    const day = document.getElementById('day').value;
+    const formattedMonth = month.padStart(2, '0');
+    const formattedDay = day.padStart(2, '0');
+
+    const date = `${formattedMonth}-${formattedDay}`;
+
     const category = document.querySelector(".category-btn.active").dataset.category;
-    if (!date) {
-      alert("날짜를 선택해주세요.");
+
+    if (!month || !day) { // 월 또는 일이 입력되지 않았을 경우
+      alert("월과 일을 모두 선택해주세요.");
       return;
     }
     showLoading();
@@ -357,6 +442,7 @@ function handleApiError(error) {
     }
   });
 
+
     // 오늘의 뉴스 불러오기
   async function loadTodayNews(category) {
     if (isLoading) return;
@@ -368,6 +454,9 @@ function handleApiError(error) {
     showLoading();
     try {
       const news = await fetchTodayRandomNews(category);
+      if (!news) {
+        throw new Error("news is undefined");
+      }
       displayNews(news);
       updateViewCount();
     } catch (error) {
@@ -543,6 +632,17 @@ function handleApiError(error) {
 
       if (response.message) {
         alert(response.message);
+      } else if (response.error) {
+        // 에러 객체가 있을 경우 각 필드별 에러 메시지 표시
+        if (typeof response.error === 'object') {
+          let errorMessage = "입력한 정보를 확인해주세요:\n\n";
+          Object.entries(response.error).forEach(([field, message]) => {
+            errorMessage += `${field} - ${message}\n`;
+          });
+          alert(errorMessage);
+        } else {
+          alert(response.error);
+        }
       } else {
         alert("회원가입이 완료되었습니다.");
       }
@@ -804,18 +904,40 @@ function handleApiError(error) {
     }
   }
 
+  // 년도 차이 계산 함수
+  function calculateYearsAgo(dateString) {
+    const today = new Date();
+    const newsDate = new Date(dateString);
+    const yearsAgo = today.getFullYear() - newsDate.getFullYear();
+    return yearsAgo;
+  }
+
   // 뉴스 표시 함수
   function displayNews(news) {
+    if (!news) {
+      console.error("Invalid news data received:", news);
+      throw new Error("news is undefined");
+    }
     document.getElementById("news-title").textContent = news.title;
-    document.getElementById("published-date").textContent = `발행일: ${news.published_date}`;
+    const yearsAgo = calculateYearsAgo(news.publishedDate);
+    const formattedDate = news.publishedDate.replace(/-/g, '.');
+    const today = new Date();
+    const publishedDate = new Date(news.publishedDate);
+    if (publishedDate.getDate() === today.getDate() && publishedDate.getMonth() === today.getMonth()) {
+      document.getElementById("published-date").textContent = `발행일: ${yearsAgo}년 전 오늘 (${formattedDate})`;
+    } else {
+      document.getElementById("published-date").textContent = `발행일: ${yearsAgo}년 전 당시 (${formattedDate})`;
+    }
+    
+    document.getElementById("main-category").textContent = `대분류: ${news.mainCategory}`;
     document.getElementById(
       "category-levels"
-    ).textContent = `카테고리: ${news.category_level1}, ${news.category_level2}, ${news.category_level3}`;
-    document.getElementById("news-content").innerHTML = news.content;
+    ).textContent = `카테고리: ${news.categoryLevel1}, ${news.categoryLevel2}, ${news.categoryLevel3}`;
+    // Combine content and address link for inline display
+    const contentWithLink = `${news.content} <a id="address" href="${news.address}" target="_blank" rel="noopener noreferrer">자세히 보기</a>`;
+    document.getElementById("news-content").innerHTML = contentWithLink;
     document.getElementById("press").textContent = `출처: ${news.press}`;
     document.getElementById("reporter").textContent = `기자: ${news.reporter}`;
-    document.getElementById("address").href = news.address;
-    document.getElementById("address").textContent = "원문보기";
   }
 
   // 로그인 모달 표시 함수
@@ -885,5 +1007,26 @@ function handleApiError(error) {
       showLoginModal();
     }
   })();
+
+  // randomBtn.addEventListener("click", async () => {
+  //   try {
+  //     showLoading();
+  //     const news = await fetchTodayRandomNews();
+  //     if (news) {
+  //       // Populate the news content here
+  //       document.getElementById("news-title").textContent = news.title;
+  //       document.getElementById("published-date").textContent = news.date;
+  //       document.getElementById("main-category").textContent = news.category;
+  //       document.getElementById("news-content").textContent = news.content;
+  //       document.getElementById("press").textContent = news.press;
+  //       document.getElementById("reporter").textContent = news.reporter;
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch news:", error);
+  //     alert("뉴스를 가져오는 데 실패했습니다.");
+  //   } finally {
+  //     hideLoading();
+  //   }
+  // });
 }
 );

@@ -48,5 +48,11 @@ public class NewsArticle {
     @Column(nullable = false, length = 500)
     private String content;
 
+    @Column(name = "pub_day", insertable = false, updatable = false)
+    private Integer pubDay;
+
+    @Column(name = "pub_month", insertable = false, updatable = false)
+    private Integer pubMonth;
+
 
 }
